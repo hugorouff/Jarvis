@@ -9,8 +9,9 @@
     :root {
       --hud-cyan: #00f3ff;
       --hud-blue: #0066ff;
-      --hud-bg: #050b14;
+      --hud-bg: #03080e;
       --hud-red: #ff3366;
+      --hud-green: #00ff66;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,99 +25,158 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 15px;
+      padding: 10px;
       background-image: 
         radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.05) 0%, transparent 70%),
         linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
-      background-size: 100% 100%, 20px 20px, 20px 20px;
+      background-size: 100% 100%, 15px 15px, 15px 15px;
     }
 
-    /* En-tête HUD */
     header {
       display: flex;
       justify-content: space-between;
-      border-bottom: 1px solid rgba(0, 243, 255, 0.3);
-      padding-bottom: 8px;
-      font-size: 0.75rem;
+      border-bottom: 1px solid rgba(0, 243, 255, 0.4);
+      padding-bottom: 5px;
+      font-size: 0.7rem;
       letter-spacing: 2px;
+      text-shadow: 0 0 5px var(--hud-cyan);
     }
 
-    /* Grille Principale */
     .dashboard {
       display: grid;
-      grid-template-columns: 1fr 2fr 1fr;
-      gap: 15px;
-      height: 70vh;
-      align-items: center;
+      grid-template-columns: 1.2fr 2fr 1.2fr;
+      gap: 12px;
+      height: 78vh;
+      align-items: stretch;
     }
 
-    /* Panneaux latéraux avec données animées */
     .hud-panel {
-      border: 1px solid rgba(0, 243, 255, 0.2);
-      background: rgba(0, 15, 30, 0.4);
+      border: 1px solid rgba(0, 243, 255, 0.25);
+      background: rgba(0, 12, 24, 0.6);
       padding: 10px;
-      height: 100%;
       display: flex;
       flex-direction: column;
-      justify-content: space-around;
-      font-size: 0.7rem;
+      justify-content: space-between;
+      font-size: 0.65rem;
       position: relative;
+      box-shadow: inset 0 0 15px rgba(0, 243, 255, 0.05);
+      overflow: hidden;
     }
 
     .hud-panel::before {
       content: '';
       position: absolute;
-      top: -2px; left: -2px; width: 8px; height: 8px;
-      border-top: 2px solid var(--hud-cyan);
-      border-left: 2px solid var(--hud-cyan);
+      top: 0; left: 0; width: 100%; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--hud-cyan), transparent);
+      animation: scanline 4s infinite linear;
     }
 
-    /* Diagramme des flux monétaires */
-    .flow-stream {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+    @keyframes scanline {
+      0% { top: 0%; }
+      100% { top: 100%; }
     }
 
+    .panel-title {
+      border-bottom: 1px dashed rgba(0, 243, 255, 0.3);
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+
+    /* Visualisations Graphiques */
     .flow-bar {
-      height: 12px;
+      height: 8px;
       background: rgba(0, 243, 255, 0.1);
       border: 1px solid var(--hud-cyan);
       position: relative;
       overflow: hidden;
+      margin: 3px 0 8px 0;
     }
 
     .flow-fill {
       height: 100%;
       background: var(--hud-cyan);
       width: 50%;
-      animation: pulseFlow 3s infinite alternate ease-in-out;
+      animation: pulseFlow 2.5s infinite alternate ease-in-out;
+      box-shadow: 0 0 8px var(--hud-cyan);
     }
 
     @keyframes pulseFlow {
-      0% { width: 20%; }
-      100% { width: 95%; }
+      0% { width: 15%; }
+      100% { width: 90%; }
     }
 
-    /* Zone Centrale (Réponse & Réacteur) */
+    /* Grille de statistiques */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+
+    .stat-box {
+      border: 1px solid rgba(0, 243, 255, 0.15);
+      background: rgba(0, 243, 255, 0.03);
+      padding: 4px;
+    }
+
+    .stat-value {
+      font-size: 0.8rem;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    /* Oscilloscope / Onde Audio */
+    .wave-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 30px;
+      gap: 2px;
+      margin: 5px 0;
+    }
+
+    .wave-bar {
+      flex: 1;
+      background: var(--hud-cyan);
+      height: 20%;
+      animation: wave 1.2s infinite ease-in-out alternate;
+    }
+
+    @keyframes wave {
+      0% { height: 10%; opacity: 0.3; }
+      100% { height: 100%; opacity: 1; box-shadow: 0 0 5px var(--hud-cyan); }
+    }
+
+    /* Terminal Log défilant */
+    .terminal-logs {
+      font-size: 0.55rem;
+      color: rgba(0, 243, 255, 0.6);
+      height: 65px;
+      overflow: hidden;
+      line-height: 1.2;
+    }
+
+    /* Centre HUD */
     .center-display {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
       height: 100%;
-      position: relative;
     }
 
     .arc-container {
       position: relative;
-      width: 140px;
-      height: 140px;
+      width: 130px;
+      height: 130px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 20px;
+      margin: 10px 0;
     }
 
     .ring {
@@ -126,17 +186,16 @@
       animation: spin 10s linear infinite;
     }
 
-    .ring-1 { width: 140px; height: 140px; border-width: 1px; opacity: 0.5; }
-    .ring-2 { width: 110px; height: 110px; border: 2px solid var(--hud-blue); animation-duration: 6s; animation-direction: reverse; }
-    
+    .ring-1 { width: 130px; height: 130px; border-width: 1px; opacity: 0.4; }
+    .ring-2 { width: 100px; height: 100px; border: 2px solid var(--hud-blue); animation-duration: 5s; animation-direction: reverse; }
+
     .core {
-      width: 70px;
-      height: 70px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
       background: radial-gradient(circle, #fff 0%, var(--hud-cyan) 60%, transparent 100%);
       box-shadow: 0 0 20px var(--hud-cyan);
       cursor: pointer;
-      transition: transform 0.2s;
     }
 
     .core.recording {
@@ -146,27 +205,24 @@
 
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
-    /* Zone d'affichage du texte de Jarvis */
     .response-box {
       width: 100%;
-      min-height: 120px;
+      height: 140px;
       border: 1px solid rgba(0, 243, 255, 0.4);
-      background: rgba(0, 10, 20, 0.7);
-      padding: 15px;
-      border-radius: 4px;
-      font-size: 0.95rem;
+      background: rgba(0, 8, 16, 0.8);
+      padding: 12px;
+      border-radius: 2px;
+      font-size: 0.85rem;
       line-height: 1.4;
-      text-shadow: 0 0 5px var(--hud-cyan);
+      text-shadow: 0 0 4px var(--hud-cyan);
       overflow-y: auto;
-      max-height: 200px;
     }
 
-    /* Zone de saisie texte / vocal en bas */
     .input-bar {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       border-top: 1px solid rgba(0, 243, 255, 0.3);
-      padding-top: 10px;
+      padding-top: 8px;
     }
 
     input[type="text"] {
@@ -174,21 +230,20 @@
       background: rgba(0, 243, 255, 0.05);
       border: 1px solid var(--hud-cyan);
       color: #fff;
-      padding: 12px;
+      padding: 10px;
       font-family: inherit;
       outline: none;
-      border-radius: 2px;
+      font-size: 0.8rem;
     }
 
     button {
       background: rgba(0, 243, 255, 0.15);
       border: 1px solid var(--hud-cyan);
       color: var(--hud-cyan);
-      padding: 0 20px;
+      padding: 0 15px;
       cursor: pointer;
       font-family: inherit;
-      letter-spacing: 1px;
-      transition: background 0.2s;
+      font-size: 0.75rem;
     }
 
     button:hover { background: var(--hud-cyan); color: var(--hud-bg); }
@@ -198,70 +253,124 @@
 
   <header>
     <span>SYSTEM: ONLINE</span>
-    <span>JARVIS v2.4</span>
+    <span>JARVIS MARK-IV</span>
     <span id="clock">00:00:00</span>
   </header>
 
   <div class="dashboard">
-    <!-- Panneau Gauche : Flux & Télémétrie -->
+    <!-- GAUCHE : Finance & Réseau -->
     <div class="hud-panel">
       <div>
-        <p>FLUX MONÉTAIRES (EUR/USD)</p>
-        <div class="flow-stream" style="margin-top: 8px;">
-          <span>MARCHÉ ACTIONS</span>
-          <div class="flow-bar"><div class="flow-fill" style="animation-duration: 2.1s;"></div></div>
-          <span>CRYPTO ASSETS</span>
-          <div class="flow-bar"><div class="flow-fill" style="animation-duration: 4.5s;"></div></div>
-          <span>LIQUIDITÉS</span>
-          <div class="flow-bar"><div class="flow-fill" style="animation-duration: 1.8s;"></div></div>
+        <div class="panel-title">FLUX MONÉTAIRES EN TEMPS RÉEL</div>
+        
+        <div class="stat-grid">
+          <div class="stat-box">BTC/USD<div class="stat-value" id="btcPrice">$89,420</div></div>
+          <div class="stat-box">ETH/USD<div class="stat-value" id="ethPrice">$3,240</div></div>
         </div>
+
+        <span>S&P 500 INDEX</span>
+        <div class="flow-bar"><div class="flow-fill" style="animation-duration: 2.1s;"></div></div>
+        <span>NASDAQ FUTURES</span>
+        <div class="flow-bar"><div class="flow-fill" style="animation-duration: 3.8s;"></div></div>
+        <span>LIQUIDITÉS GLOBALES</span>
+        <div class="flow-bar"><div class="flow-fill" style="animation-duration: 1.5s;"></div></div>
       </div>
+
       <div>
-        <p>RESEAU: <span style="color: #00ff66;">SÉCURISÉ</span></p>
-        <p>LATENCE: <span id="latency">24ms</span></p>
+        <div class="panel-title">MONITORING RÉSEAU</div>
+        <p>BANDE PASSANTE: <span style="color:#fff;">1.2 Gbps</span></p>
+        <p>PAQUETS ENTRANTS: <span style="color:var(--hud-green);">99.8%</span></p>
+        <p>LATENCE SERVEUR: <span id="latency">18ms</span></p>
+      </div>
+
+      <div>
+        <div class="panel-title">SÉCURITÉ INFRASTRUCTURE</div>
+        <p>PARE-FEU: <span style="color:var(--hud-green);">ACTIF</span></p>
+        <p>CHIFFREMENT: <span style="color:#fff;">AES-256</span></p>
       </div>
     </div>
 
-    <!-- Centre : Réacteur Arc & Réponses Texte -->
+    <!-- CENTRE : Réacteur & Interaction -->
     <div class="center-display">
       <div class="arc-container">
         <div class="ring ring-1"></div>
         <div class="ring ring-2"></div>
         <div class="core" id="micBtn" title="Cliquer pour parler"></div>
       </div>
-      
+
+      <div style="width: 100%;">
+        <p style="font-size: 0.65rem; margin-bottom: 4px;">ANALYSEUR DE FRÉQUENCE VOCALE</p>
+        <div class="wave-container">
+          <div class="wave-bar" style="animation-delay: 0.1s;"></div>
+          <div class="wave-bar" style="animation-delay: 0.4s;"></div>
+          <div class="wave-bar" style="animation-delay: 0.2s;"></div>
+          <div class="wave-bar" style="animation-delay: 0.6s;"></div>
+          <div class="wave-bar" style="animation-delay: 0.3s;"></div>
+          <div class="wave-bar" style="animation-delay: 0.5s;"></div>
+          <div class="wave-bar" style="animation-delay: 0.1s;"></div>
+          <div class="wave-bar" style="animation-delay: 0.4s;"></div>
+        </div>
+      </div>
+
       <div class="response-box" id="responseBox">
-        Initialisation terminée. En attente de vos instructions, Monsieur...
+        Initialisation terminée. Tous les flux de télémétrie sont actifs. En attente de vos instructions, Monsieur...
       </div>
     </div>
 
-    <!-- Panneau Droit : Ressources Système -->
+    <!-- DROITE : Système & IA -->
     <div class="hud-panel">
       <div>
-        <p>SERVEUR RENDER</p>
-        <p style="margin-top: 5px;">CPU: <span id="cpuUsage">12%</span></p>
-        <div class="flow-bar" style="margin-top: 4px;"><div class="flow-fill" id="cpuBar"></div></div>
+        <div class="panel-title">RESSOURCES CLOUD (RENDER)</div>
+        <div class="stat-grid">
+          <div class="stat-box">CPU<div class="stat-value" id="cpuUsage">14%</div></div>
+          <div class="stat-box">RAM<div class="stat-value">210 MB</div></div>
+        </div>
+        <span>CHARGE PROCESSEUR</span>
+        <div class="flow-bar"><div class="flow-fill" id="cpuBar" style="animation-duration: 4s;"></div></div>
+        <p>TEMPÉRATURE CORE: <span style="color:#fff;">42°C</span></p>
       </div>
+
       <div>
-        <p>MODULES IA</p>
-        <p>• GEMINI-1.5: <span style="color: #00ff66;">OK</span></p>
-        <p>• ELEVENLABS: <span style="color: #00ff66;">OK</span></p>
-        <p>• GMAIL API: <span style="color: #00ff66;">PRÊT</span></p>
+        <div class="panel-title">STATUT DES APIS</div>
+        <p>• GEMINI-1.5: <span style="color:var(--hud-green);">CONNECTÉ</span></p>
+        <p>• ELEVENLABS: <span style="color:var(--hud-green);">CONNECTÉ</span></p>
+        <p>• GMAIL API: <span style="color:#ffcc00;">EN ATTENTE</span></p>
+      </div>
+
+      <div>
+        <div class="panel-title">LOGS SYSTÈME DÉFILANTS</div>
+        <div class="terminal-logs" id="terminalLogs">
+          > INIT_SYSTEM_CHECK... OK<br>
+          > FETCH_CURRENCY_RATES... DONE<br>
+          > CONNECT_RENDER_NODE_01... OK<br>
+          > AUDIO_BUFFER_READY...<br>
+          > AWAITING_PROMPT...
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Barre d'entrée de Texte & Vocal -->
   <div class="input-bar">
-    <input type="text" id="textInput" placeholder="Écrire une commande à Jarvis..." autocomplete="off">
+    <input type="text" id="textInput" placeholder="Saisir une instruction pour Jarvis..." autocomplete="off">
     <button id="sendBtn">ENVOYER</button>
   </div>
 
   <script>
-    // Horloge HUD
+    // Horloge & Données Dynamiques
     setInterval(() => {
       document.getElementById('clock').innerText = new Date().toLocaleTimeString();
-      document.getElementById('cpuUsage').innerText = Math.floor(Math.random() * 20 + 10) + '%';
+      document.getElementById('cpuUsage').innerText = Math.floor(Math.random() * 15 + 10) + '%';
+      
+      // Simulation variation crypto
+      const btc = 89420 + Math.floor(Math.random() * 100 - 50);
+      document.getElementById('btcPrice').innerText = '$' + btc.toLocaleString();
+      
+      // Ajout de logs
+      const logs = document.getElementById('terminalLogs');
+      const newLog = document.createElement('div');
+      newLog.innerText = `> SYNC_PACKET_${Math.floor(Math.random()*9000+1000)}... OK`;
+      logs.appendChild(newLog);
+      if (logs.childNodes.length > 6) logs.removeChild(logs.firstChild);
     }, 1000);
 
     const micBtn = document.getElementById('micBtn');
@@ -272,7 +381,6 @@
     let mediaRecorder;
     let audioChunks = [];
 
-    // Animation écriture texte
     function typeWriter(text) {
       responseBox.innerText = "";
       let i = 0;
@@ -286,7 +394,6 @@
       speed();
     }
 
-    // Gestion Enregistrement Vocal
     micBtn.onclick = async () => {
       if (!mediaRecorder || mediaRecorder.state === 'inactive') {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -296,11 +403,11 @@
         mediaRecorder.onstop = sendAudio;
         mediaRecorder.start();
         micBtn.classList.add('recording');
-        responseBox.innerText = "[ÉCOUTE EN COURS...]";
+        responseBox.innerText = "[RECORDING_AUDIO_STREAM...]";
       } else {
         mediaRecorder.stop();
         micBtn.classList.remove('recording');
-        responseBox.innerText = "[TRAITEMENT EN COURS...]";
+        responseBox.innerText = "[PROCESSING_VOICE_PROMPT...]";
       }
     };
 
@@ -308,22 +415,21 @@
       const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
       const formData = new FormData();
       formData.append('file', audioBlob, 'input.wav');
-      await executeRequest('https://jarvis-c157.onrender.com/vocal', { method: 'POST', body: formData });
+      await executeRequest('/vocal', { method: 'POST', body: formData });
     }
 
-    // Envoi par Texte
     sendBtn.onclick = () => sendText();
     textInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendText(); });
 
     async function sendText() {
       const query = textInput.value.trim();
       if (!query) return;
-      responseBox.innerText = "[TRANSMISSION DE LA COMMANDE...]";
+      responseBox.innerText = "[TRANSMITTING_TEXT_COMMAND...]";
       textInput.value = "";
       
       const formData = new FormData();
       formData.append('text_prompt', query);
-      await executeRequest('https://jarvis-c157.onrender.com/vocal', { method: 'POST', body: formData });
+      await executeRequest('/vocal', { method: 'POST', body: formData });
     }
 
     async function executeRequest(url, options) {
