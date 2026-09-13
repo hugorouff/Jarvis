@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JARVIS MARK-V</title>
 <link rel="manifest" href="/manifest.json">
-<link rel="icon" href="/favicon.ico">
-<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
 <meta name="theme-color" content="#00f0ff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="JARVIS">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+<link rel="icon" href="/favicon.ico">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -206,6 +206,15 @@
   }
   .input-bar button:hover { background: var(--hud-color); color: #000; box-shadow: 0 0 15px var(--hud-color); }
 
+  #micBtn.recording {
+    background: rgba(255, 51, 102, 0.25);
+    border-color: #ff3366;
+    color: #ff3366;
+    box-shadow: 0 0 15px rgba(255, 51, 102, 0.6);
+    animation: micPulse 1s infinite ease-in-out;
+  }
+  @keyframes micPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
   ::-webkit-scrollbar { width: 7px; }
   ::-webkit-scrollbar-track { background: rgba(0, 10, 20, 0.6); }
   ::-webkit-scrollbar-thumb { background: var(--hud-border); border-radius: 4px; }
@@ -302,6 +311,9 @@
     </div>
 
     <form class="input-bar" id="vocal-form">
+      <button type="button" id="micBtn" title="Parler à Jarvis" style="width:44px; flex:0 0 44px; padding:0; display:flex; align-items:center; justify-content:center;">
+        <i class="fa-solid fa-microphone"></i>
+      </button>
       <input type="text" id="text_prompt" name="text_prompt" placeholder="Saisissez une commande ou une question..." autocomplete="off">
       <button type="submit"><i class="fa-solid fa-paper-plane"></i> ENVOYER</button>
     </form>
@@ -361,10 +373,61 @@ document.getElementById('vocal-form').addEventListener('submit', async (e) => {
 
   const formData = new FormData();
   formData.append('text_prompt', promptText);
+  input.value = "";
+  await sendToJarvis(formData);
+});
 
+// --- Enregistrement vocal ---
+const micBtn = document.getElementById('micBtn');
+let mediaRecorder = null;
+let audioChunks = [];
+
+micBtn.addEventListener('click', async () => {
+  if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Laisse le navigateur choisir le format qu'il gère nativement
+      // (webm/opus sur Chrome/Android, mp4/aac sur Safari, etc.)
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+
+      mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+      mediaRecorder.onstop = async () => {
+        const mimeType = mediaRecorder.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunks, { type: mimeType });
+        const formData = new FormData();
+        formData.append('file', audioBlob, 'input_audio');
+        formData.append('mime_type', mimeType);
+
+        document.getElementById('ai-response').innerHTML = "<em>Traitement de votre message vocal...</em>";
+        await sendToJarvis(formData);
+
+        // Libère le micro
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      micBtn.classList.add('recording');
+      document.getElementById('ai-response').innerHTML = "<em>🎙️ Enregistrement en cours... Cliquez à nouveau pour envoyer.</em>";
+    } catch (err) {
+      document.getElementById('ai-response').innerHTML =
+        `<span style="color:#ef4444;">Impossible d'accéder au micro : ${err.message}</span>`;
+    }
+  } else {
+    mediaRecorder.stop();
+    micBtn.classList.remove('recording');
+  }
+});
+
+async function sendToJarvis(formData) {
+  const responseDiv = document.getElementById('ai-response');
   try {
     const res = await fetch('/vocal', { method: 'POST', body: formData });
-    if (!res.ok) throw new Error(`Erreur serveur: ${res.status}`);
+
+    if (!res.ok) {
+      const errBody = await res.text();
+      throw new Error(`(${res.status}) ${errBody || 'Erreur inconnue côté serveur.'}`);
+    }
 
     const aiTextHeader = res.headers.get('X-Jarvis-Text');
     let rawText = "";
@@ -383,12 +446,10 @@ document.getElementById('vocal-form').addEventListener('submit', async (e) => {
       const audio = new Audio(URL.createObjectURL(blob));
       audio.play();
     }
-
-    input.value = "";
   } catch (err) {
     responseDiv.innerHTML = `<span style="color: #ef4444;">Erreur système : ${err.message}</span>`;
   }
-});
+}
 </script>
 </body>
 </html>
