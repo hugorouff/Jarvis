@@ -6,6 +6,7 @@ from google import genai
 
 app = FastAPI()
 
+# Initialisation des API
 GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 ELEVEN_KEY = os.getenv("ELEVENLABS_API_KEY")
 
@@ -24,21 +25,15 @@ async def process_vocal(
     try:
         prompt = text_prompt or "Bonjour Jarvis"
 
-        # 1. Traitement par Gemini (Instructions Système pour Jarvis)
-        system_instruction = (
-            "Tu es JARVIS, une IA hautement avancée. "
-            "Réponds de manière concise, élégante et professionnelle."
-        )
-        
+        # Appel à Gemini (Utilisation de gemini-2.5-flash)
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
-            config={"system_instruction": system_instruction}
         )
         
         reply_text = response.text or "Instruction reçue, Monsieur."
 
-        # 2. Synthèse vocale ElevenLabs (si la clé API est présente)
+        # Synthèse vocale avec ElevenLabs si la clé est renseignée
         if ELEVEN_KEY:
             voice_id = "21m00Tcm4TlvDq8ikWAM"
             url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
