@@ -1,9 +1,21 @@
 {
-  "short_name": "Jarvis",
-  "name": "Jarvis AI Assistant",
-  "icons": [],
-  "start_url": "/index.html",
-  "background_color": "#0d1117",
-  "theme_color": "#0d1117",
-  "display": "standalone"
+  "short_name": "JARVIS",
+  "name": "JARVIS MARK-V HUD",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/864/864685.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/864/864685.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#020813",
+  "theme_color": "#00f0ff",
+  "display": "standalone",
+  "orientation": "portrait"
 }
