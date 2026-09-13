@@ -222,14 +222,12 @@
 
   /* ---------- RESPONSIVE BREAKPOINTS ---------- */
 
-  /* Tablets: side panels shrink but stay side-by-side */
   @media (max-width: 1100px) {
     .dashboard-container {
       grid-template-columns: minmax(200px, 240px) 1fr minmax(200px, 240px);
     }
   }
 
-  /* Phones / narrow screens: stack everything vertically, allow page scroll */
   @media (max-width: 820px) {
     html, body { height: auto; overflow-y: auto; }
 
@@ -239,7 +237,6 @@
       height: auto;
     }
 
-    /* Show the response window first on mobile, then the side data */
     .center-panel { order: -1; }
     .response-container { min-height: 260px; }
 
@@ -386,8 +383,6 @@ micBtn.addEventListener('click', async () => {
   if (!mediaRecorder || mediaRecorder.state === 'inactive') {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      // Laisse le navigateur choisir le format qu'il gère nativement
-      // (webm/opus sur Chrome/Android, mp4/aac sur Safari, etc.)
       mediaRecorder = new MediaRecorder(stream);
       audioChunks = [];
 
@@ -402,7 +397,6 @@ micBtn.addEventListener('click', async () => {
         document.getElementById('ai-response').innerHTML = "<em>Traitement de votre message vocal...</em>";
         await sendToJarvis(formData);
 
-        // Libère le micro
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -433,7 +427,11 @@ async function sendToJarvis(formData) {
     let rawText = "";
 
     if (aiTextHeader) {
-      rawText = decodeURIComponent(escape(aiTextHeader));
+      try {
+        rawText = decodeURIComponent(aiTextHeader);
+      } catch (e) {
+        rawText = decodeURIComponent(escape(aiTextHeader));
+      }
     } else {
       rawText = await res.text();
     }
