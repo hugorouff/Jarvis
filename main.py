@@ -9,6 +9,7 @@ from google import genai
 from google.genai import types
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
@@ -23,11 +24,15 @@ def read_root():
     with open("index.html", "r", encoding="utf-8") as f:
         return f.read()
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/manifest.json")
 def get_manifest():
     return FileResponse("manifest.json", media_type="application/json")
 
+@app.get("/favicon.ico")
+def get_favicon():
+    return FileResponse("static/favicon.ico", media_type="image/x-icon")
 
 def send_email_gmail(to_email: str, subject: str, body: str):
     """
