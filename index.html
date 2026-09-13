@@ -69,6 +69,7 @@
       border-bottom: 1px dashed rgba(0, 243, 255, 0.3);
       padding-bottom: 4px;
       margin-bottom: 6px;
+      margin-top: 8px;
       font-weight: bold;
       letter-spacing: 1px;
       color: #fff;
@@ -83,8 +84,8 @@
     }
 
     .circle-chart {
-      width: 65px;
-      height: 65px;
+      width: 60px;
+      height: 60px;
       position: relative;
     }
 
@@ -106,7 +107,7 @@
       stroke-width: 3.8;
       stroke-dasharray: 100;
       stroke-linecap: round;
-      animation: progress 2s ease-out forwards;
+      transition: stroke-dasharray 0.5s ease-in-out;
     }
 
     .circle-text {
@@ -125,8 +126,8 @@
       border: 1px solid rgba(0, 243, 255, 0.3);
       border-radius: 2px;
       overflow: hidden;
-      margin-top: 6px;
-      height: 85px;
+      margin-top: 4px;
+      height: 70px;
     }
 
     .vehicle-card img {
@@ -156,6 +157,29 @@
       color: #fff;
     }
 
+    /* Barres de progression dynamiques */
+    .bar-container {
+      margin: 4px 0;
+    }
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.55rem;
+      margin-bottom: 2px;
+    }
+    .bar-bg {
+      width: 100%;
+      height: 6px;
+      background: rgba(0, 243, 255, 0.1);
+      border: 1px solid rgba(0, 243, 255, 0.3);
+    }
+    .bar-fill {
+      height: 100%;
+      background: var(--hud-cyan);
+      width: 50%;
+      transition: width 0.5s ease-in-out;
+    }
+
     /* Centre HUD */
     .center-display {
       display: flex;
@@ -167,12 +191,12 @@
 
     .arc-container {
       position: relative;
-      width: 120px;
-      height: 120px;
+      width: 130px;
+      height: 130px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 5px 0;
+      margin: 10px 0;
     }
 
     .ring {
@@ -182,12 +206,12 @@
       animation: spin 10s linear infinite;
     }
 
-    .ring-1 { width: 120px; height: 120px; border-width: 1px; opacity: 0.4; }
-    .ring-2 { width: 90px; height: 90px; border: 2px solid var(--hud-blue); animation-duration: 5s; animation-direction: reverse; }
+    .ring-1 { width: 130px; height: 130px; border-width: 1px; opacity: 0.4; }
+    .ring-2 { width: 95px; height: 95px; border: 2px solid var(--hud-blue); animation-duration: 5s; animation-direction: reverse; }
 
     .core {
-      width: 55px;
-      height: 55px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
       background: radial-gradient(circle, #fff 0%, var(--hud-cyan) 60%, transparent 100%);
       box-shadow: 0 0 20px var(--hud-cyan);
@@ -257,38 +281,47 @@
     <!-- PANNEAU GAUCHE -->
     <div class="hud-panel">
       <div>
-        <div class="panel-title">REPARTITION CAPITAL (DIAGRAMMES)</div>
+        <div class="panel-title">RÉPARTITION CAPITAL</div>
         <div class="circles-container">
           <div class="circle-chart">
             <svg viewBox="0 0 36 36">
               <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-              <path class="circle-progress" stroke-dasharray="75, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path class="circle-progress" id="circle-actions" stroke-dasharray="75, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
             </svg>
-            <div class="circle-text">75%</div>
+            <div class="circle-text" id="val-actions">75%</div>
           </div>
           <div class="circle-chart">
             <svg viewBox="0 0 36 36">
               <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-              <path class="circle-progress" style="stroke: var(--hud-yellow);" stroke-dasharray="42, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path class="circle-progress" id="circle-crypto" style="stroke: var(--hud-yellow);" stroke-dasharray="42, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
             </svg>
-            <div class="circle-text">42%</div>
+            <div class="circle-text" id="val-crypto">42%</div>
           </div>
         </div>
         <p style="text-align: center; font-size: 0.55rem;">[ACTIONS] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [CRYPTO]</p>
+
+        <!-- Marché en direct -->
+        <div class="panel-title">FLUX DU MARCHÉ</div>
+        <div class="bar-container">
+          <div class="bar-label"><span>BTC / USD</span><span id="txt-btc">$64,210</span></div>
+          <div class="bar-bg"><div class="bar-fill" id="bar-btc" style="width: 68%;"></div></div>
+        </div>
+        <div class="bar-container">
+          <div class="bar-label"><span>ETH / USD</span><span id="txt-eth">$3,450</span></div>
+          <div class="bar-bg"><div class="bar-fill" id="bar-eth" style="width: 52%; background: var(--hud-yellow);"></div></div>
+        </div>
       </div>
 
       <div>
         <div class="panel-title">TÉLÉMÉTRIE AUTOMOBILE</div>
-        <!-- Photo F1 Ferrari -->
         <div class="vehicle-card">
           <img src="https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=600&q=80" alt="Ferrari F1">
           <div class="vehicle-overlay">
             <span>FERRARI SF-24</span>
-            <span style="color:var(--hud-green);">342 KM/H</span>
+            <span style="color:var(--hud-green);" id="speed-ferrari">342 KM/H</span>
           </div>
         </div>
         
-        <!-- Photo BMW M5 -->
         <div class="vehicle-card">
           <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=600&q=80" alt="BMW M5">
           <div class="vehicle-overlay">
@@ -308,7 +341,7 @@
       </div>
 
       <div class="response-box" id="responseBox">
-        Initialisation terminée. Télémétrie Ferrari & BMW activée. En attente de vos instructions, Monsieur...
+        Initialisation terminée. Dynamic HUD activé. En attente de vos instructions, Monsieur...
       </div>
     </div>
 
@@ -320,12 +353,27 @@
           <div class="circle-chart">
             <svg viewBox="0 0 36 36">
               <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-              <path class="circle-progress" style="stroke: var(--hud-red);" stroke-dasharray="88, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path class="circle-progress" id="circle-reactor" style="stroke: var(--hud-red);" stroke-dasharray="88, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
             </svg>
-            <div class="circle-text">88%</div>
+            <div class="circle-text" id="val-reactor">88%</div>
           </div>
         </div>
         <p style="text-align: center; font-size: 0.55rem;">FLUX THERMIQUE</p>
+
+        <!-- Monitoring système -->
+        <div class="panel-title">MONITORING SYSTEME</div>
+        <div class="bar-container">
+          <div class="bar-label"><span>CHARGE CPU</span><span id="txt-cpu">45%</span></div>
+          <div class="bar-bg"><div class="bar-fill" id="bar-cpu" style="width: 45%; background: var(--hud-green);"></div></div>
+        </div>
+        <div class="bar-container">
+          <div class="bar-label"><span>MEMOIRE RAM</span><span id="txt-ram">6.2 GB</span></div>
+          <div class="bar-bg"><div class="bar-fill" id="bar-ram" style="width: 62%;"></div></div>
+        </div>
+        <div class="bar-container">
+          <div class="bar-label"><span>RESEAU RENDER</span><span id="txt-net">12ms</span></div>
+          <div class="bar-bg"><div class="bar-fill" id="bar-net" style="width: 25%; background: var(--hud-green);"></div></div>
+        </div>
       </div>
 
       <div>
@@ -343,9 +391,35 @@
   </div>
 
   <script>
+    // Horloge
     setInterval(() => {
       document.getElementById('clock').innerText = new Date().toLocaleTimeString();
     }, 1000);
+
+    // Animation dynamique de la télémétrie en temps réel
+    setInterval(() => {
+      // Télémétrie Ferrari
+      const speed = Math.floor(335 + Math.random() * 15);
+      document.getElementById('speed-ferrari').innerText = `${speed} KM/H`;
+
+      // CPU & RAM
+      const cpu = Math.floor(35 + Math.random() * 30);
+      document.getElementById('txt-cpu').innerText = `${cpu}%`;
+      document.getElementById('bar-cpu').style.width = `${cpu}%`;
+
+      const ram = (5.8 + Math.random() * 0.8).toFixed(1);
+      document.getElementById('txt-ram').innerText = `${ram} GB`;
+      document.getElementById('bar-ram').style.width = `${(ram/16)*100}%`;
+
+      // Réacteur Arc
+      const reactor = Math.floor(85 + Math.random() * 8);
+      document.getElementById('val-reactor').innerText = `${reactor}%`;
+      document.getElementById('circle-reactor').setAttribute('stroke-dasharray', `${reactor}, 100`);
+
+      // Crypto / Actions
+      const btc = Math.floor(64000 + Math.random() * 500);
+      document.getElementById('txt-btc').innerText = `$${btc.toLocaleString()}`;
+    }, 2000);
 
     const micBtn = document.getElementById('micBtn');
     const responseBox = document.getElementById('responseBox');
