@@ -7,6 +7,7 @@ from fastapi import FastAPI, Form, UploadFile, File
 from fastapi.responses import Response, HTMLResponse
 from google import genai
 from google.genai import types
+from fastapi.responses import FileResponse # À ajouter dans tes imports en haut
 
 app = FastAPI()
 
@@ -17,6 +18,10 @@ SENDER_PASSWORD = os.getenv("SENDER_PASSWORD")
 
 client = genai.Client(api_key=GEMINI_KEY)
 
+@app.get("/manifest.json")
+def get_manifest():
+    return FileResponse("manifest.json", media_type="application/json")
+    
 @app.get("/", response_class=HTMLResponse)
 def read_root():
     with open("index.html", "r", encoding="utf-8") as f:
