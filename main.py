@@ -63,12 +63,12 @@ def load_history():
         )
         if res.status_code != 200:
             return []
-            
+
         data = res.json()
         raw = data.get("result")
         if not raw:
             return []
-        
+
         return json.loads(raw)
     except Exception as e:
         print(f"[Upstash] Erreur de lecture : {e}")
@@ -157,19 +157,26 @@ SYSTEM_INSTRUCTION = (
 
 
 def build_chat_with_history():
-    """Recrée une session de chat Gemini avec mémoire + recherche Web instantanée."""
+    """Recrée une session de chat Gemini avec mémoire + recherche Web instantanée.
+
+    Modèle choisi : gemini-2.5-flash-lite. C'est un modèle stable et établi
+    (pas la toute nouvelle génération 3.5/3.6 qui vient de sortir avec un
+    quota gratuit très restreint, voire inexistant). Il a un vrai quota
+    gratuit quotidien généreux (~1500 requêtes/jour) et un tarif payant très
+    bas en cas de dépassement ($0.10 / $0.40 par million de tokens).
+    """
     history_raw = load_history()
-    
+
     genai_history = [
         types.Content(
-            role=h["role"], 
+            role=h["role"],
             parts=[types.Part.from_text(text=h["text"])]
         )
         for h in history_raw
     ]
 
     return client.chats.create(
-        model="gemini-3.5-flash-lite",
+        model="gemini-2.5-flash-lite",
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_INSTRUCTION,
             tools=[
@@ -189,11 +196,27 @@ def reset_memory():
 
 
 def send_message_with_retry(chat, contents, retries=2, delay=1.5):
+    """
+    Réessaie automatiquement en cas d'échec passager (réseau, surcharge
+    temporaire), MAIS ne réessaie PAS en cas de 429/RESOURCE_EXHAUSTED :
+    retenter immédiatement après un dépassement de quota ne sert à rien
+    (le quota ne s'est pas régénéré en 1.5 seconde) et gaspille encore plus
+    de ton quota restant. Dans ce cas précis, on échoue tout de suite avec
+    un message clair.
+    """
     last_err = None
     for attempt in range(retries + 1):
         try:
             return chat.send_message(contents)
         except Exception as e:
+            err_str = str(e)
+            if "RESOURCE_EXHAUSTED" in err_str or "429" in err_str:
+                raise RuntimeError(
+                    "Le quota gratuit de l'API Gemini est atteint pour le moment. "
+                    "Réessaie dans quelques minutes, ou vérifie/augmente ton quota sur "
+                    "https://aistudio.google.com (onglet API keys / Usage)."
+                ) from e
+
             last_err = e
             print(f"[Gemini] Tentative {attempt + 1}/{retries + 1} échouée : {e}")
             if attempt < retries:
