@@ -1,544 +1,393 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JARVIS MARK-V</title>
-    <!-- Font Awesome pour les icônes -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Marked.js pour formater le Markdown -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- Fichier Manifest pour PWA -->
-    <link rel="manifest" href="/manifest.json">
-    
-    <!-- Paramètres d'affichage PWA / Mobile -->
-    <meta name="theme-color" content="#00f0ff">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="JARVIS">
-    
-    <!-- Icône pour iPhone / iPad -->
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/864/864685.png">
-    <style>
-        :root {
-            --hud-color: #00f0ff;
-            --hud-bg: rgba(0, 15, 25, 0.92);
-            --hud-border: rgba(0, 240, 255, 0.4);
-            --hud-glow: rgba(0, 240, 255, 0.25);
-            --text-main: #cbf5ff;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JARVIS MARK-V</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#00f0ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="JARVIS">
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/864/864685.png">
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Consolas', 'Courier New', monospace;
-        }
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-        body {
-            background-color: #020813;
-            color: var(--text-main);
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            background-image: 
-                radial-gradient(circle at 50% 50%, rgba(0, 40, 60, 0.45) 0%, transparent 80%),
-                linear-gradient(to right, rgba(0, 240, 255, 0.04) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
-            background-size: 100% 100%, 25px 25px, 25px 25px;
-        }
+<style>
+  :root {
+    --hud-color: #00f0ff;
+    --hud-bg: rgba(0, 15, 25, 0.92);
+    --hud-border: rgba(0, 240, 255, 0.4);
+    --hud-glow: rgba(0, 240, 255, 0.25);
+    --text-main: #cbf5ff;
+  }
 
-        /* En-tête compact */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 24px;
-            border-bottom: 1px solid var(--hud-border);
-            background: rgba(0, 10, 20, 0.95);
-            font-size: 1rem;
-            font-weight: bold;
-            letter-spacing: 2px;
-            color: var(--hud-color);
-            text-shadow: 0 0 8px var(--hud-glow);
-        }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Consolas', 'Courier New', monospace; }
 
-        /* Layout rééquilibré */
-        .dashboard-container {
-            display: grid;
-            grid-template-columns: 310px 1fr 310px;
-            gap: 14px;
-            padding: 14px;
-            height: calc(100vh - 45px);
-        }
+  html, body {
+    background-color: #020813;
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-image:
+      radial-gradient(circle at 50% 50%, rgba(0, 40, 60, 0.45) 0%, transparent 80%),
+      linear-gradient(to right, rgba(0, 240, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
+    background-size: 100% 100%, 25px 25px, 25px 25px;
+  }
 
-        /* Panneaux latéraux ajustés */
-        .panel {
-            background: var(--hud-bg);
-            border: 1px solid var(--hud-border);
-            box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.08), 0 0 12px var(--hud-glow);
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            overflow-y: auto;
-            border-radius: 6px;
-        }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px clamp(12px, 3vw, 24px);
+    border-bottom: 1px solid var(--hud-border);
+    background: rgba(0, 10, 20, 0.95);
+    font-size: clamp(0.7rem, 2vw, 1rem);
+    font-weight: bold;
+    letter-spacing: 2px;
+    color: var(--hud-color);
+    text-shadow: 0 0 8px var(--hud-glow);
+    flex-wrap: wrap;
+    gap: 6px;
+  }
 
-        .widget-title {
-            font-size: 0.95rem;
-            font-weight: bold;
-            color: var(--hud-color);
-            letter-spacing: 1.5px;
-            border-bottom: 1px solid var(--hud-border);
-            padding-bottom: 6px;
-            text-transform: uppercase;
-            text-shadow: 0 0 6px var(--hud-glow);
-        }
+  .dashboard-container {
+    display: grid;
+    grid-template-columns: minmax(240px, 310px) 1fr minmax(240px, 310px);
+    gap: 14px;
+    padding: 14px;
+    flex: 1;
+    min-height: 0;
+  }
 
-        /* Indicateurs circulaires dimensionnés */
-        .charts-row {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            margin: 4px 0;
-        }
+  .panel {
+    background: var(--hud-bg);
+    border: 1px solid var(--hud-border);
+    box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.08), 0 0 12px var(--hud-glow);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+    border-radius: 6px;
+    min-height: 0;
+  }
 
-        .circle-chart {
-            width: 85px;
-            height: 85px;
-            border-radius: 50%;
-            background: conic-gradient(var(--hud-color) 75%, rgba(0, 240, 255, 0.1) 0);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            box-shadow: 0 0 10px var(--hud-glow);
-        }
+  .widget-title {
+    font-size: clamp(0.8rem, 1.5vw, 0.95rem);
+    font-weight: bold;
+    color: var(--hud-color);
+    letter-spacing: 1.5px;
+    border-bottom: 1px solid var(--hud-border);
+    padding-bottom: 6px;
+    text-transform: uppercase;
+    text-shadow: 0 0 6px var(--hud-glow);
+  }
 
-        .circle-chart::before {
-            content: '';
-            position: absolute;
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
-            background: #020813;
-        }
+  .charts-row {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 4px 0;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
 
-        .circle-value {
-            position: relative;
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #fff;
-            text-shadow: 0 0 6px var(--hud-color);
-        }
+  .circle-chart {
+    width: clamp(64px, 8vw, 85px);
+    height: clamp(64px, 8vw, 85px);
+    border-radius: 50%;
+    background: conic-gradient(var(--hud-color) 75%, rgba(0, 240, 255, 0.1) 0);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    box-shadow: 0 0 10px var(--hud-glow);
+  }
 
-        /* Barres de progression */
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
+  .circle-chart::before {
+    content: '';
+    position: absolute;
+    width: 76%;
+    height: 76%;
+    border-radius: 50%;
+    background: #020813;
+  }
 
-        .stat-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.88rem;
-            color: var(--text-main);
-        }
+  .circle-value {
+    position: relative;
+    font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 6px var(--hud-color);
+  }
 
-        .progress-bar-bg {
-            height: 10px;
-            background: rgba(0, 240, 255, 0.12);
-            border: 1px solid var(--hud-border);
-            border-radius: 3px;
-            overflow: hidden;
-        }
+  .stat-item { display: flex; flex-direction: column; gap: 5px; }
+  .stat-header { display: flex; justify-content: space-between; font-size: clamp(0.75rem, 1.5vw, 0.88rem); color: var(--text-main); }
+  .progress-bar-bg { height: 10px; background: rgba(0, 240, 255, 0.12); border: 1px solid var(--hud-border); border-radius: 3px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: var(--hud-color); box-shadow: 0 0 10px var(--hud-color); }
 
-        .progress-bar-fill {
-            height: 100%;
-            background: var(--hud-color);
-            box-shadow: 0 0 10px var(--hud-color);
-        }
+  .car-card { border: 1px solid var(--hud-border); background: rgba(0, 20, 35, 0.85); overflow: hidden; border-radius: 4px; }
+  .car-img-container { width: 100%; height: clamp(75px, 12vw, 95px); background: rgba(0, 40, 60, 0.6); overflow: hidden; }
+  .car-img-container img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s; }
+  .car-img-container img:hover { transform: scale(1.04); }
+  .car-info { padding: 7px 10px; display: flex; justify-content: space-between; font-size: clamp(0.7rem, 1.5vw, 0.85rem); font-weight: bold; color: var(--hud-color); background: rgba(0, 10, 20, 0.8); border-top: 1px solid rgba(0, 240, 255, 0.2); }
 
-        /* Cartes Télémétrie Automobile avec fallback d'image */
-        .car-card {
-            border: 1px solid var(--hud-border);
-            background: rgba(0, 20, 35, 0.85);
-            overflow: hidden;
-            border-radius: 4px;
-            position: relative;
-        }
+  .center-panel { display: flex; flex-direction: column; gap: 12px; height: 100%; min-height: 0; }
+  .jarvis-orb-container { flex: 0 0 auto; display: flex; justify-content: center; align-items: center; padding: 6px 0; }
+  .jarvis-orb {
+    width: clamp(50px, 8vw, 75px);
+    height: clamp(50px, 8vw, 75px);
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffffff 0%, var(--hud-color) 60%, rgba(0,240,255,0.2) 100%);
+    box-shadow: 0 0 25px var(--hud-color), 0 0 45px var(--hud-glow);
+    animation: pulse 3s infinite ease-in-out;
+  }
+  @keyframes pulse { 0%, 100% { transform: scale(0.94); opacity: 0.85; } 50% { transform: scale(1.04); opacity: 1; } }
 
-        .car-img-container {
-            width: 100%;
-            height: 95px;
-            background: rgba(0, 40, 60, 0.6);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            position: relative;
-        }
+  .response-container {
+    flex: 1;
+    min-height: 200px;
+    width: 100%;
+    background: rgba(1, 15, 28, 0.94);
+    border: 1px solid var(--hud-color);
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.2), inset 0 0 15px rgba(0, 240, 255, 0.08);
+    border-radius: 6px;
+    padding: clamp(14px, 2.5vw, 22px);
+    overflow-y: auto;
+    color: #d8f8ff;
+    font-size: clamp(0.85rem, 1.6vw, 1.05rem);
+    line-height: 1.6;
+  }
 
-        .car-img-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            transition: transform 0.3s;
-        }
+  .response-content h1, .response-content h2, .response-content h3 {
+    color: var(--hud-color);
+    margin-top: 16px;
+    margin-bottom: 10px;
+    text-shadow: 0 0 6px var(--hud-glow);
+    border-bottom: 1px dashed var(--hud-border);
+    padding-bottom: 4px;
+  }
+  .response-content h1 { font-size: 1.3rem; }
+  .response-content h2 { font-size: 1.15rem; }
+  .response-content h3 { font-size: 1.05rem; }
+  .response-content p { margin-bottom: 12px; }
+  .response-content strong { color: #ffffff; text-shadow: 0 0 6px var(--hud-color); }
+  .response-content ul, .response-content ol { margin-left: 22px; margin-bottom: 12px; }
+  .response-content li { margin-bottom: 6px; }
+  .response-content code { background: rgba(0, 240, 255, 0.2); padding: 2px 6px; border-radius: 4px; color: #fff; }
 
-        .car-img-container img:hover {
-            transform: scale(1.04);
-        }
+  .input-bar { width: 100%; display: flex; gap: 10px; flex: 0 0 auto; flex-wrap: wrap; }
+  .input-bar input {
+    flex: 1 1 200px;
+    background: rgba(0, 20, 35, 0.85);
+    border: 1px solid var(--hud-border);
+    padding: 12px 16px;
+    color: #fff;
+    font-size: 1rem;
+    border-radius: 5px;
+    outline: none;
+  }
+  .input-bar input:focus { border-color: var(--hud-color); box-shadow: 0 0 10px var(--hud-glow); }
+  .input-bar button {
+    background: rgba(0, 240, 255, 0.18);
+    border: 1px solid var(--hud-color);
+    color: var(--hud-color);
+    padding: 0 22px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.2s;
+  }
+  .input-bar button:hover { background: var(--hud-color); color: #000; box-shadow: 0 0 15px var(--hud-color); }
 
-        .car-info {
-            padding: 7px 10px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: var(--hud-color);
-            background: rgba(0, 10, 20, 0.8);
-            border-top: 1px solid rgba(0, 240, 255, 0.2);
-        }
+  ::-webkit-scrollbar { width: 7px; }
+  ::-webkit-scrollbar-track { background: rgba(0, 10, 20, 0.6); }
+  ::-webkit-scrollbar-thumb { background: var(--hud-border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--hud-color); }
 
-        /* Section centrale */
-        .center-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            height: 100%;
-            min-height: 0;
-        }
+  /* ---------- RESPONSIVE BREAKPOINTS ---------- */
 
-        /* Orbe central JARVIS */
-        .jarvis-orb-container {
-            flex: 0 0 85px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+  /* Tablets: side panels shrink but stay side-by-side */
+  @media (max-width: 1100px) {
+    .dashboard-container {
+      grid-template-columns: minmax(200px, 240px) 1fr minmax(200px, 240px);
+    }
+  }
 
-        .jarvis-orb {
-            width: 75px;
-            height: 75px;
-            border-radius: 50%;
-            background: radial-gradient(circle, #ffffff 0%, var(--hud-color) 60%, rgba(0,240,255,0.2) 100%);
-            box-shadow: 0 0 25px var(--hud-color), 0 0 45px var(--hud-glow);
-            animation: pulse 3s infinite ease-in-out;
-        }
+  /* Phones / narrow screens: stack everything vertically, allow page scroll */
+  @media (max-width: 820px) {
+    html, body { height: auto; overflow-y: auto; }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(0.94); opacity: 0.85; }
-            50% { transform: scale(1.04); opacity: 1; }
-        }
+    .dashboard-container {
+      grid-template-columns: 1fr;
+      grid-auto-rows: auto;
+      height: auto;
+    }
 
-        /* Fenêtre de réponse centrale */
-        .response-container {
-            flex: 1;
-            min-height: 0;
-            width: 100%;
-            background: rgba(1, 15, 28, 0.94);
-            border: 1px solid var(--hud-color);
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2), inset 0 0 15px rgba(0, 240, 255, 0.08);
-            border-radius: 6px;
-            padding: 22px;
-            overflow-y: auto;
-            color: #d8f8ff;
-            font-size: 1.05rem;
-            line-height: 1.6;
-        }
+    /* Show the response window first on mobile, then the side data */
+    .center-panel { order: -1; }
+    .response-container { min-height: 260px; }
 
-        /* Formattage Markdown élégant */
-        .response-content h1, 
-        .response-content h2, 
-        .response-content h3 {
-            color: var(--hud-color);
-            margin-top: 16px;
-            margin-bottom: 10px;
-            font-family: 'Consolas', monospace;
-            text-shadow: 0 0 6px var(--hud-glow);
-            border-bottom: 1px dashed var(--hud-border);
-            padding-bottom: 4px;
-        }
+    .panel { max-height: none; overflow-y: visible; }
 
-        .response-content h1 { font-size: 1.4rem; }
-        .response-content h2 { font-size: 1.25rem; }
-        .response-content h3 { font-size: 1.1rem; }
-        .response-content p { margin-bottom: 12px; }
-        .response-content strong { color: #ffffff; text-shadow: 0 0 6px var(--hud-color); }
-        .response-content ul, .response-content ol { margin-left: 22px; margin-bottom: 12px; }
-        .response-content li { margin-bottom: 6px; }
-        .response-content code { background: rgba(0, 240, 255, 0.2); padding: 2px 6px; border-radius: 4px; color: #fff; }
-
-        /* Barre d'entrée */
-        .input-bar {
-            width: 100%;
-            display: flex;
-            gap: 10px;
-            flex: 0 0 auto;
-        }
-
-        .input-bar input {
-            flex: 1;
-            background: rgba(0, 20, 35, 0.85);
-            border: 1px solid var(--hud-border);
-            padding: 12px 16px;
-            color: #fff;
-            font-size: 1rem;
-            border-radius: 5px;
-            outline: none;
-        }
-
-        .input-bar input:focus {
-            border-color: var(--hud-color);
-            box-shadow: 0 0 10px var(--hud-glow);
-        }
-
-        .input-bar button {
-            background: rgba(0, 240, 255, 0.18);
-            border: 1px solid var(--hud-color);
-            color: var(--hud-color);
-            padding: 0 22px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: all 0.2s;
-        }
-
-        .input-bar button:hover {
-            background: var(--hud-color);
-            color: #000;
-            box-shadow: 0 0 15px var(--hud-color);
-        }
-
-        /* Scrollbar personnalisée */
-        ::-webkit-scrollbar {
-            width: 7px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 10, 20, 0.6);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--hud-border);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--hud-color);
-        }
-    </style>
+    header { justify-content: center; text-align: center; }
+  }
+</style>
 </head>
 <body>
 
-    <header>
-        <div>SYSTEM: ONLINE</div>
-        <div>JARVIS MARK-V</div>
-        <div id="clock">18:30:44</div>
-    </header>
+<header>
+  <div>SYSTEM: ONLINE</div>
+  <div>JARVIS MARK-V</div>
+  <div id="clock">--:--:--</div>
+</header>
 
-    <div class="dashboard-container">
-        
-        <!-- PANNEAU GAUCHE -->
-        <div class="panel">
-            <div class="widget-title">Répartition Capital</div>
-            <div class="charts-row">
-                <div class="circle-chart">
-                    <span class="circle-value">75%</span>
-                </div>
-                <div class="circle-chart" style="background: conic-gradient(#f59e0b 42%, rgba(0,240,255,0.1) 0);">
-                    <span class="circle-value">42%</span>
-                </div>
-            </div>
+<div class="dashboard-container">
 
-            <div class="widget-title">Flux du Marché</div>
-            <div class="stat-item">
-                <div class="stat-header">
-                    <span>BTC / USD</span>
-                    <span>$64,210</span>
-                </div>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" style="width: 82%;"></div>
-                </div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-header">
-                    <span>ETH / USD</span>
-                    <span>$3,450</span>
-                </div>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" style="width: 58%; background: #f59e0b;"></div>
-                </div>
-            </div>
-
-            <div class="widget-title">Consommation Énergie</div>
-            <div class="stat-item">
-                <div class="stat-header">
-                    <span>RÉSEAU ÉLECTRIQUE</span>
-                    <span>2.5 MW</span>
-                </div>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" style="width: 45%; background: #10b981;"></div>
-                </div>
-            </div>
-
-            <div class="widget-title">Télémétrie Automobile</div>
-            <div class="car-card">
-                <div class="car-img-container">
-                    <img src="https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=600&q=80" 
-                         alt="Ferrari SF-90"
-                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=600&q=80';">
-                </div>
-                <div class="car-info">
-                    <span>FERRARI SF-90</span>
-                    <span>320 KM/H</span>
-                </div>
-            </div>
-            <div class="car-card">
-                <div class="car-img-container">
-                    <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=600&q=80" 
-                         alt="BMW M5 CS"
-                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&w=600&q=80';">
-                </div>
-                <div class="car-info">
-                    <span>BMW M5 CS</span>
-                    <span>720 HP</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- PANNEAU CENTRAL -->
-        <div class="center-panel">
-            <div class="jarvis-orb-container">
-                <div class="jarvis-orb"></div>
-            </div>
-
-            <!-- FENÊTRE DE RÉPONSE CENTRALE -->
-            <div class="response-container">
-                <div id="ai-response" class="response-content"></div>
-            </div>
-
-            <form class="input-bar" id="vocal-form">
-                <input type="text" id="text_prompt" name="text_prompt" placeholder="Saisissez une commande ou une question..." autocomplete="off">
-                <button type="submit"><i class="fa-solid fa-paper-plane"></i> ENVOYER</button>
-            </form>
-        </div>
-
-        <!-- PANNEAU DROITE -->
-        <div class="panel">
-            <div class="widget-title">Statut du Réacteur</div>
-            <div class="charts-row">
-                <div class="circle-chart" style="background: conic-gradient(#ef4444 89%, rgba(0,240,255,0.1) 0);">
-                    <span class="circle-value">89%</span>
-                </div>
-            </div>
-
-            <div class="widget-title">Monitoring Système</div>
-            <div class="stat-item">
-                <div class="stat-header">
-                    <span>CHARGE CPU</span>
-                    <span>52%</span>
-                </div>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" style="width: 52%; background: #10b981;"></div>
-                </div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-header">
-                    <span>MÉMOIRE RAM</span>
-                    <span>6.2 GB</span>
-                </div>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" style="width: 65%;"></div>
-                </div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-header">
-                    <span>LIAISON SATELLITE</span>
-                    <span>99.8%</span>
-                </div>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" style="width: 99.8%;"></div>
-                </div>
-            </div>
-
-            <div class="widget-title">Services Actifs</div>
-            <div style="font-size: 0.95rem; line-height: 1.8; color: #10b981; font-weight: bold;">
-                <div>• GEMINI-3.6-FLASH : OPÉRATIONNEL</div>
-                <div>• ELEVENLABS : OPÉRATIONNEL</div>
-                <div>• GMAIL API : CONNECTÉ</div>
-            </div>
-        </div>
-
+  <!-- PANNEAU GAUCHE -->
+  <div class="panel">
+    <div class="widget-title">Répartition Capital</div>
+    <div class="charts-row">
+      <div class="circle-chart"><span class="circle-value">75%</span></div>
+      <div class="circle-chart" style="background: conic-gradient(#f59e0b 42%, rgba(0,240,255,0.1) 0);"><span class="circle-value">42%</span></div>
     </div>
 
-    <script>
-        // Exemple de réponse initiale au chargement avec formatage Markdown
-        const defaultText = `Initialisation terminée. Dynamic HUD activé. En attente de vos instructions, Monsieur...`;
+    <div class="widget-title">Flux du Marché</div>
+    <div class="stat-item">
+      <div class="stat-header"><span>BTC / USD</span><span>$64,210</span></div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 82%;"></div></div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-header"><span>ETH / USD</span><span>$3,450</span></div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 58%; background: #f59e0b;"></div></div>
+    </div>
 
-        document.getElementById('ai-response').innerHTML = marked.parse(defaultText);
+    <div class="widget-title">Consommation Énergie</div>
+    <div class="stat-item">
+      <div class="stat-header"><span>RÉSEAU ÉLECTRIQUE</span><span>2.5 MW</span></div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 45%; background: #10b981;"></div></div>
+    </div>
 
-        // Horloge temps réel
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
+    <div class="widget-title">Télémétrie Automobile</div>
+    <div class="car-card">
+      <div class="car-img-container">
+        <img src="https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=600&q=80"
+             alt="Ferrari SF-90"
+             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=600&q=80';">
+      </div>
+      <div class="car-info"><span>FERRARI SF-90</span><span>320 KM/H</span></div>
+    </div>
+    <div class="car-card">
+      <div class="car-img-container">
+        <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=600&q=80"
+             alt="BMW M5 CS"
+             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&w=600&q=80';">
+      </div>
+      <div class="car-info"><span>BMW M5 CS</span><span>720 HP</span></div>
+    </div>
+  </div>
 
-        // Envoi du formulaire
-        document.getElementById('vocal-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const input = document.getElementById('text_prompt');
-            const responseDiv = document.getElementById('ai-response');
-            const promptText = input.value.trim();
+  <!-- PANNEAU CENTRAL -->
+  <div class="center-panel">
+    <div class="jarvis-orb-container"><div class="jarvis-orb"></div></div>
 
-            if (!promptText) return;
+    <div class="response-container">
+      <div id="ai-response" class="response-content"></div>
+    </div>
 
-            responseDiv.innerHTML = "<em>Analyse en cours par JARVIS...</em>";
+    <form class="input-bar" id="vocal-form">
+      <input type="text" id="text_prompt" name="text_prompt" placeholder="Saisissez une commande ou une question..." autocomplete="off">
+      <button type="submit"><i class="fa-solid fa-paper-plane"></i> ENVOYER</button>
+    </form>
+  </div>
 
-            const formData = new FormData();
-            formData.append('text_prompt', promptText);
+  <!-- PANNEAU DROITE -->
+  <div class="panel">
+    <div class="widget-title">Statut du Réacteur</div>
+    <div class="charts-row">
+      <div class="circle-chart" style="background: conic-gradient(#ef4444 89%, rgba(0,240,255,0.1) 0);"><span class="circle-value">89%</span></div>
+    </div>
 
-            try {
-                const res = await fetch('/vocal', {
-                    method: 'POST',
-                    body: formData
-                });
+    <div class="widget-title">Monitoring Système</div>
+    <div class="stat-item">
+      <div class="stat-header"><span>CHARGE CPU</span><span>52%</span></div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 52%; background: #10b981;"></div></div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-header"><span>MÉMOIRE RAM</span><span>6.2 GB</span></div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 65%;"></div></div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-header"><span>LIAISON SATELLITE</span><span>99.8%</span></div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 99.8%;"></div></div>
+    </div>
 
-                if (!res.ok) {
-                    throw new Error(`Erreur serveur: ${res.status}`);
-                }
+    <div class="widget-title">Services Actifs</div>
+    <div style="font-size: clamp(0.8rem,1.6vw,0.95rem); line-height: 1.8; color: #10b981; font-weight: bold;">
+      <div>• GEMINI-2.5-FLASH : OPÉRATIONNEL</div>
+      <div>• ELEVENLABS : OPÉRATIONNEL</div>
+      <div>• GMAIL API : CONNECTÉ</div>
+    </div>
+  </div>
 
-                const aiTextHeader = res.headers.get('X-Jarvis-Text');
-                let rawText = "";
+</div>
 
-                if (aiTextHeader) {
-                    rawText = decodeURIComponent(escape(aiTextHeader));
-                } else {
-                    rawText = await res.text();
-                }
+<script>
+document.getElementById('ai-response').innerHTML = marked.parse(
+  "Initialisation terminée. En attente de vos instructions, Monsieur..."
+);
 
-                // Affichage du Markdown formaté
-                responseDiv.innerHTML = marked.parse(rawText);
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
+}
+setInterval(updateClock, 1000);
+updateClock();
 
-                // Lecture audio si disponible
-                const contentType = res.headers.get('content-type');
-                if (contentType && contentType.includes('audio/mpeg')) {
-                    const blob = await res.blob();
-                    const audioUrl = URL.createObjectURL(blob);
-                    const audio = new Audio(audioUrl);
-                    audio.play();
-                }
+document.getElementById('vocal-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const input = document.getElementById('text_prompt');
+  const responseDiv = document.getElementById('ai-response');
+  const promptText = input.value.trim();
+  if (!promptText) return;
 
-                input.value = "";
-            } catch (err) {
-                responseDiv.innerHTML = `<span style="color: #ef4444;">Erreur système : ${err.message}</span>`;
-            }
-        });
-    </script>
+  responseDiv.innerHTML = "<em>Analyse en cours par JARVIS...</em>";
+
+  const formData = new FormData();
+  formData.append('text_prompt', promptText);
+
+  try {
+    const res = await fetch('/vocal', { method: 'POST', body: formData });
+    if (!res.ok) throw new Error(`Erreur serveur: ${res.status}`);
+
+    const aiTextHeader = res.headers.get('X-Jarvis-Text');
+    let rawText = "";
+
+    if (aiTextHeader) {
+      rawText = decodeURIComponent(escape(aiTextHeader));
+    } else {
+      rawText = await res.text();
+    }
+
+    responseDiv.innerHTML = marked.parse(rawText);
+
+    const contentType = res.headers.get('content-type');
+    if (contentType && contentType.includes('audio/mpeg')) {
+      const blob = await res.blob();
+      const audio = new Audio(URL.createObjectURL(blob));
+      audio.play();
+    }
+
+    input.value = "";
+  } catch (err) {
+    responseDiv.innerHTML = `<span style="color: #ef4444;">Erreur système : ${err.message}</span>`;
+  }
+});
+</script>
 </body>
 </html>
