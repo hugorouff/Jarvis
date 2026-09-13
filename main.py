@@ -144,14 +144,13 @@ SYSTEM_INSTRUCTION = (
 
 
 def build_chat_with_history():
-    """Recrée une session de chat Gemini à partir de l'historique persistant."""
     history_raw = load_history()
     genai_history = [
         types.Content(role=h["role"], parts=[types.Part(text=h["text"])])
         for h in history_raw
     ]
     return client.chats.create(
-        model="gemini-3.6-flash",
+        model="gemini-2.5-flash",  # <--- Modifié ici
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_INSTRUCTION,
             tools=[send_email],
