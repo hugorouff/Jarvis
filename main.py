@@ -1,15 +1,17 @@
 import os
 import json
 import base64
+import traceback
 import requests
 from email.mime.text import MIMEText
 from fastapi import FastAPI, Form, UploadFile, File
 from fastapi.responses import Response, HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from google import genai
 from google.genai import types
 from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
-from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
@@ -18,28 +20,30 @@ ELEVEN_KEY = os.getenv("ELEVENLABS_API_KEY")
 
 client = genai.Client(api_key=GEMINI_KEY)
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
     with open("index.html", "r", encoding="utf-8") as f:
         return f.read()
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/manifest.json")
 def get_manifest():
     return FileResponse("manifest.json", media_type="application/json")
 
+
 @app.get("/favicon.ico")
 def get_favicon():
     return FileResponse("static/favicon.ico", media_type="image/x-icon")
 
-def send_email_gmail(to_email: str, subject: str, body: str):
+
+def _send_email_gmail(to_email: str, subject: str, body: str):
     """
-    Sends an email through the Gmail API (HTTPS, port 443) using the OAuth
-    token stored in GMAIL_TOKEN_JSON. This avoids the SMTP port-blocking /
-    timeout issues that caused the previous 502 errors.
-    Returns (success: bool, message: str).
+    Envoie réellement un e-mail via l'API Gmail (HTTPS, port 443) en
+    utilisant le jeton OAuth stocké dans GMAIL_TOKEN_JSON.
+    Retourne (success: bool, message: str).
     """
     token_raw = os.getenv("GMAIL_TOKEN_JSON")
     if not token_raw:
@@ -52,9 +56,7 @@ def send_email_gmail(to_email: str, subject: str, body: str):
             scopes=["https://www.googleapis.com/auth/gmail.send"],
         )
 
-        # Refresh the access token if it has expired (refresh_token handles this)
         if creds.expired and creds.refresh_token:
-            from google.auth.transport.requests import Request
             creds.refresh(Request())
 
         service = build("gmail", "v1", credentials=creds)
@@ -72,6 +74,27 @@ def send_email_gmail(to_email: str, subject: str, body: str):
         return False, f"Échec de l'envoi : {str(e)}"
 
 
+# --- Outil réel exposé à Gemini (pas un leurre) ---
+def send_email(to_email: str, subject: str, body: str) -> str:
+    """Envoie un e-mail réel au destinataire indiqué via l'API Gmail.
+
+    Args:
+        to_email: adresse e-mail complète du destinataire.
+        subject: objet de l'e-mail.
+        body: contenu du message.
+    """
+    success, message = _send_email_gmail(to_email, subject, body)
+    return message
+
+
+SYSTEM_INSTRUCTION = (
+    "Tu es JARVIS, un assistant IA élégant et concis. "
+    "Si l'utilisateur demande d'envoyer un e-mail, utilise l'outil `send_email` "
+    "avec un destinataire, un sujet et un corps clairs, puis confirme brièvement "
+    "le résultat retourné par l'outil. Ne réponds jamais en anglais sauf si on te le demande."
+)
+
+
 @app.post("/vocal")
 async def process_vocal(
     text_prompt: str = Form(None),
@@ -80,51 +103,20 @@ async def process_vocal(
     try:
         prompt = text_prompt or "Bonjour Jarvis"
 
-        # Tool declaration exposed to Gemini
-        def send_email(to_email: str, subject: str, body: str) -> str:
-            """Envoie un e-mail réel au destinataire indiqué via l'API Gmail."""
-            return "PENDING_SEND"  # placeholder, actual send handled below
-
-        system_instruction = (
-            "Tu es JARVIS. Si l'utilisateur demande d'envoyer un e-mail, "
-            "utilise l'outil `send_email` avec un destinataire, un sujet et un corps clairs. "
-            "Réponds toujours de façon concise et élégante."
-        )
-
-        config = types.GenerateContentConfig(
-            system_instruction=system_instruction,
-            tools=[send_email],
-        )
-
-        response = client.models.generate_content(
+        # Pattern recommandé par Google pour le function calling automatique :
+        # Chat.send_message plutôt que Models.generate_content direct.
+        chat = client.chats.create(
             model="gemini-3.6-flash",
-            contents=prompt,
-            config=config,
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_INSTRUCTION,
+                tools=[send_email],
+            ),
         )
 
-        reply_text = "Instruction reçue, Monsieur."
+        response = chat.send_message(prompt)
+        reply_text = response.text or "Instruction reçue, Monsieur."
 
-        if response.function_calls:
-            function_call = response.function_calls[0]
-            if function_call.name == "send_email":
-                args = function_call.args
-                to_email = args.get("to_email")
-                subject = args.get("subject", "Message de Jarvis")
-                body = args.get("body", "")
-
-                # Send synchronously so we can report the REAL result.
-                # The Gmail API call is a quick HTTPS request, not a slow
-                # SMTP handshake, so this won't trigger a 502 timeout.
-                success, result_message = send_email_gmail(to_email, subject, body)
-
-                if success:
-                    reply_text = f"C'est fait, Monsieur. {result_message}"
-                else:
-                    reply_text = f"Je n'ai pas pu envoyer l'e-mail : {result_message}"
-        else:
-            reply_text = response.text or reply_text
-
-        # Text-to-speech (optional, only if configured)
+        # Synthèse vocale (optionnelle, seulement si la clé est configurée)
         if ELEVEN_KEY:
             try:
                 voice_id = "21m00Tcm4TlvDq8ikWAM"
@@ -152,5 +144,6 @@ async def process_vocal(
         return Response(content=reply_text.encode("utf-8"), media_type="text/plain")
 
     except Exception as e:
-        print(f"Erreur backend : {e}")
+        print("Erreur backend :", e)
+        traceback.print_exc()
         return Response(content=f"Erreur : {str(e)}".encode("utf-8"), status_code=500)
