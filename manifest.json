@@ -3,14 +3,22 @@
   "name": "JARVIS MARK-V HUD",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/864/864685.png",
+      "src": "/static/icon-192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any"
     },
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/864/864685.png",
+      "src": "/static/icon-512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icon-maskable-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ],
   "start_url": "/",
