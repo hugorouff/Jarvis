@@ -215,6 +215,20 @@
   }
   @keyframes micPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
+  .jarvis-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: #ffcc66;
+    background: rgba(255, 204, 102, 0.08);
+    border: 1px solid rgba(255, 204, 102, 0.35);
+    padding: 12px 14px;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  .jarvis-notice i { margin-top: 3px; flex-shrink: 0; }
+
   ::-webkit-scrollbar { width: 7px; }
   ::-webkit-scrollbar-track { background: rgba(0, 10, 20, 0.6); }
   ::-webkit-scrollbar-thumb { background: var(--hud-border); border-radius: 4px; }
@@ -222,12 +236,14 @@
 
   /* ---------- RESPONSIVE BREAKPOINTS ---------- */
 
+  /* Tablets: side panels shrink but stay side-by-side */
   @media (max-width: 1100px) {
     .dashboard-container {
       grid-template-columns: minmax(200px, 240px) 1fr minmax(200px, 240px);
     }
   }
 
+  /* Phones / narrow screens: stack everything vertically, allow page scroll */
   @media (max-width: 820px) {
     html, body { height: auto; overflow-y: auto; }
 
@@ -237,6 +253,7 @@
       height: auto;
     }
 
+    /* Show the response window first on mobile, then the side data */
     .center-panel { order: -1; }
     .response-container { min-height: 260px; }
 
@@ -374,6 +391,51 @@ document.getElementById('vocal-form').addEventListener('submit', async (e) => {
   await sendToJarvis(formData);
 });
 
+// --- Traduction des erreurs techniques en messages "façon Jarvis" ---
+// Le détail brut part toujours dans la console (F12) pour le débogage,
+// jamais affiché tel quel à l'écran.
+function getJarvisErrorMessage(err, statusCode) {
+  const raw = (err && err.message) ? err.message : String(err || "");
+
+  // Micro refusé / indisponible
+  if (err && (err.name === 'NotAllowedError' || err.name === 'NotFoundError')) {
+    return "Je n'ai pas accès au microphone, Monsieur. Vérifiez les autorisations de votre navigateur.";
+  }
+
+  // Serveur injoignable (pas de réseau, Render en veille, etc.)
+  if ((err instanceof TypeError) || /Failed to fetch|NetworkError|network/i.test(raw)) {
+    return "Je n'arrive pas à joindre mes serveurs, Monsieur. Vérifiez votre connexion et réessayez dans un instant.";
+  }
+
+  // Quota Gemini dépassé (429 / RESOURCE_EXHAUSTED)
+  if (statusCode === 429 || /RESOURCE_EXHAUSTED|quota/i.test(raw)) {
+    return "Mon accès à l'intelligence centrale est temporairement limité, Monsieur. Merci de patienter quelques minutes.";
+  }
+
+  // Modèle ou ressource introuvable côté API (404)
+  if (statusCode === 404 || /NOT_FOUND/i.test(raw)) {
+    return "Un de mes modules est actuellement indisponible, Monsieur. Cela nécessite une intervention technique.";
+  }
+
+  // Format audio non supporté par Gemini
+  if (/mime|format audio|unsupported/i.test(raw)) {
+    return "Je n'ai pas pu traiter ce format audio, Monsieur. Essayez de me parler à nouveau, ou passez par le texte.";
+  }
+
+  // Erreur serveur générique (500 et au-delà)
+  if ((statusCode && statusCode >= 500) || /Erreur backend|Internal Server Error/i.test(raw)) {
+    return "Toutes mes excuses, Monsieur, je rencontre une difficulté technique passagère. Veuillez réessayer.";
+  }
+
+  // Repli générique — ne devrait presque jamais s'afficher
+  return "Une anomalie inattendue s'est produite, Monsieur. Veuillez réessayer dans un instant.";
+}
+
+function showJarvisNotice(message) {
+  const responseDiv = document.getElementById('ai-response');
+  responseDiv.innerHTML = `<div class="jarvis-notice"><i class="fa-solid fa-triangle-exclamation"></i> ${message}</div>`;
+}
+
 // --- Enregistrement vocal ---
 const micBtn = document.getElementById('micBtn');
 let mediaRecorder = null;
@@ -383,6 +445,8 @@ micBtn.addEventListener('click', async () => {
   if (!mediaRecorder || mediaRecorder.state === 'inactive') {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Laisse le navigateur choisir le format qu'il gère nativement
+      // (webm/opus sur Chrome/Android, mp4/aac sur Safari, etc.)
       mediaRecorder = new MediaRecorder(stream);
       audioChunks = [];
 
@@ -397,6 +461,7 @@ micBtn.addEventListener('click', async () => {
         document.getElementById('ai-response').innerHTML = "<em>Traitement de votre message vocal...</em>";
         await sendToJarvis(formData);
 
+        // Libère le micro
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -404,8 +469,8 @@ micBtn.addEventListener('click', async () => {
       micBtn.classList.add('recording');
       document.getElementById('ai-response').innerHTML = "<em>🎙️ Enregistrement en cours... Cliquez à nouveau pour envoyer.</em>";
     } catch (err) {
-      document.getElementById('ai-response').innerHTML =
-        `<span style="color:#ef4444;">Impossible d'accéder au micro : ${err.message}</span>`;
+      console.error("Erreur micro :", err);
+      showJarvisNotice(getJarvisErrorMessage(err, null));
     }
   } else {
     mediaRecorder.stop();
@@ -415,8 +480,10 @@ micBtn.addEventListener('click', async () => {
 
 async function sendToJarvis(formData) {
   const responseDiv = document.getElementById('ai-response');
+  let statusCode = null;
   try {
     const res = await fetch('/vocal', { method: 'POST', body: formData });
+    statusCode = res.status;
 
     if (!res.ok) {
       const errBody = await res.text();
@@ -427,11 +494,7 @@ async function sendToJarvis(formData) {
     let rawText = "";
 
     if (aiTextHeader) {
-      try {
-        rawText = decodeURIComponent(aiTextHeader);
-      } catch (e) {
-        rawText = decodeURIComponent(escape(aiTextHeader));
-      }
+      rawText = decodeURIComponent(escape(aiTextHeader));
     } else {
       rawText = await res.text();
     }
@@ -445,7 +508,9 @@ async function sendToJarvis(formData) {
       audio.play();
     }
   } catch (err) {
-    responseDiv.innerHTML = `<span style="color: #ef4444;">Erreur système : ${err.message}</span>`;
+    // Détail technique complet : uniquement dans la console, jamais à l'écran
+    console.error("Erreur Jarvis :", err);
+    showJarvisNotice(getJarvisErrorMessage(err, statusCode));
   }
 }
 </script>
