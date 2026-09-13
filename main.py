@@ -150,7 +150,7 @@ def build_chat_with_history():
         for h in history_raw
     ]
     return client.chats.create(
-        model="gemini-2.5-flash",  # <--- Modifié ici
+        model="gemini-1.5-flash",  # <--- Modifié ici
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_INSTRUCTION,
             tools=[send_email],
