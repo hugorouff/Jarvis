@@ -176,7 +176,7 @@ def build_chat_with_history():
     ]
 
     return client.chats.create(
-        model="gemini-2.5-flash-lite",
+        model="gemini-3.5-flash-lite",
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_INSTRUCTION,
             tools=[
