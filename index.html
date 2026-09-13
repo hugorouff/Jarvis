@@ -6,15 +6,15 @@
     <title>JARVIS MARK-V</title>
     <!-- Font Awesome pour les icônes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Marked.js pour formater le Markdown venant de Gemini en HTML propre -->
+    <!-- Marked.js pour formater le Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
         :root {
             --hud-color: #00f0ff;
-            --hud-bg: rgba(0, 15, 25, 0.9);
-            --hud-border: rgba(0, 240, 255, 0.45);
-            --hud-glow: rgba(0, 240, 255, 0.3);
+            --hud-bg: rgba(0, 15, 25, 0.92);
+            --hud-border: rgba(0, 240, 255, 0.4);
+            --hud-glow: rgba(0, 240, 255, 0.25);
             --text-main: #cbf5ff;
         }
 
@@ -36,112 +36,110 @@
                 radial-gradient(circle at 50% 50%, rgba(0, 40, 60, 0.45) 0%, transparent 80%),
                 linear-gradient(to right, rgba(0, 240, 255, 0.04) 1px, transparent 1px),
                 linear-gradient(to bottom, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
-            background-size: 100% 100%, 30px 30px, 30px 30px;
+            background-size: 100% 100%, 25px 25px, 25px 25px;
         }
 
-        /* En-tête */
+        /* En-tête compact */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 14px 35px;
+            padding: 10px 24px;
             border-bottom: 1px solid var(--hud-border);
             background: rgba(0, 10, 20, 0.95);
-            font-size: 1.25rem;
+            font-size: 1rem;
             font-weight: bold;
             letter-spacing: 2px;
             color: var(--hud-color);
-            text-shadow: 0 0 10px var(--hud-glow);
+            text-shadow: 0 0 8px var(--hud-glow);
         }
 
-        /* Layout principal */
+        /* Layout rééquilibré */
         .dashboard-container {
             display: grid;
-            grid-template-columns: 380px 1fr 380px;
-            gap: 20px;
-            padding: 20px;
-            height: calc(100vh - 58px);
+            grid-template-columns: 310px 1fr 310px;
+            gap: 14px;
+            padding: 14px;
+            height: calc(100vh - 45px);
         }
 
-        /* Panneaux latéraux agrandis */
+        /* Panneaux latéraux ajustés */
         .panel {
             background: var(--hud-bg);
             border: 1px solid var(--hud-border);
-            box-shadow: inset 0 0 20px rgba(0, 240, 255, 0.08), 0 0 18px var(--hud-glow);
-            padding: 22px;
+            box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.08), 0 0 12px var(--hud-glow);
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 22px;
+            gap: 14px;
             overflow-y: auto;
             border-radius: 6px;
         }
 
         .widget-title {
-            font-size: 1.25rem;
+            font-size: 0.95rem;
             font-weight: bold;
             color: var(--hud-color);
-            letter-spacing: 2px;
+            letter-spacing: 1.5px;
             border-bottom: 1px solid var(--hud-border);
-            padding-bottom: 8px;
+            padding-bottom: 6px;
             text-transform: uppercase;
-            text-shadow: 0 0 8px var(--hud-glow);
+            text-shadow: 0 0 6px var(--hud-glow);
         }
 
-        /* Indicateurs circulaires plus grands */
+        /* Indicateurs circulaires dimensionnés */
         .charts-row {
             display: flex;
             justify-content: space-around;
             align-items: center;
-            margin: 8px 0;
+            margin: 4px 0;
         }
 
         .circle-chart {
-            width: 115px;
-            height: 115px;
+            width: 85px;
+            height: 85px;
             border-radius: 50%;
             background: conic-gradient(var(--hud-color) 75%, rgba(0, 240, 255, 0.1) 0);
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
-            box-shadow: 0 0 15px var(--hud-glow);
+            box-shadow: 0 0 10px var(--hud-glow);
         }
 
         .circle-chart::before {
             content: '';
             position: absolute;
-            width: 88px;
-            height: 88px;
+            width: 65px;
+            height: 65px;
             border-radius: 50%;
             background: #020813;
         }
 
         .circle-value {
             position: relative;
-            font-size: 1.45rem;
+            font-size: 1.1rem;
             font-weight: bold;
             color: #fff;
-            text-shadow: 0 0 8px var(--hud-color);
+            text-shadow: 0 0 6px var(--hud-color);
         }
 
-        /* Barres de progression agrandies */
+        /* Barres de progression */
         .stat-item {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            margin-bottom: 10px;
+            gap: 5px;
         }
 
         .stat-header {
             display: flex;
             justify-content: space-between;
-            font-size: 1.1rem;
-            font-weight: bold;
+            font-size: 0.88rem;
             color: var(--text-main);
         }
 
         .progress-bar-bg {
-            height: 14px;
+            height: 10px;
             background: rgba(0, 240, 255, 0.12);
             border: 1px solid var(--hud-border);
             border-radius: 3px;
@@ -151,110 +149,126 @@
         .progress-bar-fill {
             height: 100%;
             background: var(--hud-color);
-            box-shadow: 0 0 12px var(--hud-color);
+            box-shadow: 0 0 10px var(--hud-color);
         }
 
-        /* Télémétrie Automobile conservée */
+        /* Cartes Télémétrie Automobile avec fallback d'image */
         .car-card {
             border: 1px solid var(--hud-border);
-            background: rgba(0, 20, 35, 0.7);
+            background: rgba(0, 20, 35, 0.85);
             overflow: hidden;
             border-radius: 4px;
-            margin-bottom: 8px;
+            position: relative;
         }
 
-        .car-card img {
+        .car-img-container {
             width: 100%;
-            height: 115px;
+            height: 95px;
+            background: rgba(0, 40, 60, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .car-img-container img {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
             display: block;
-            opacity: 0.9;
+            transition: transform 0.3s;
+        }
+
+        .car-img-container img:hover {
+            transform: scale(1.04);
         }
 
         .car-info {
-            padding: 10px 14px;
+            padding: 7px 10px;
             display: flex;
             justify-content: space-between;
-            font-size: 1rem;
+            font-size: 0.85rem;
             font-weight: bold;
             color: var(--hud-color);
+            background: rgba(0, 10, 20, 0.8);
+            border-top: 1px solid rgba(0, 240, 255, 0.2);
         }
 
-        /* Section centrale agrandie */
+        /* Section centrale */
         .center-panel {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
             height: 100%;
             min-height: 0;
         }
 
         /* Orbe central JARVIS */
         .jarvis-orb-container {
-            flex: 0 0 110px;
+            flex: 0 0 85px;
             display: flex;
             justify-content: center;
             align-items: center;
-            position: relative;
         }
 
         .jarvis-orb {
-            width: 90px;
-            height: 90px;
+            width: 75px;
+            height: 75px;
             border-radius: 50%;
             background: radial-gradient(circle, #ffffff 0%, var(--hud-color) 60%, rgba(0,240,255,0.2) 100%);
-            box-shadow: 0 0 30px var(--hud-color), 0 0 60px var(--hud-glow);
+            box-shadow: 0 0 25px var(--hud-color), 0 0 45px var(--hud-glow);
             animation: pulse 3s infinite ease-in-out;
         }
 
         @keyframes pulse {
-            0%, 100% { transform: scale(0.95); opacity: 0.85; }
-            50% { transform: scale(1.05); opacity: 1; }
+            0%, 100% { transform: scale(0.94); opacity: 0.85; }
+            50% { transform: scale(1.04); opacity: 1; }
         }
 
-        /* Fenêtre de réponse centrale GRAND FORMAT */
+        /* Fenêtre de réponse centrale */
         .response-container {
             flex: 1;
-            min-height: 0; /* Permet le scroll interne propre dans le flexbox */
+            min-height: 0;
             width: 100%;
             background: rgba(1, 15, 28, 0.94);
             border: 1px solid var(--hud-color);
-            box-shadow: 0 0 25px rgba(0, 240, 255, 0.25), inset 0 0 20px rgba(0, 240, 255, 0.1);
-            border-radius: 8px;
-            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2), inset 0 0 15px rgba(0, 240, 255, 0.08);
+            border-radius: 6px;
+            padding: 22px;
             overflow-y: auto;
             color: #d8f8ff;
-            font-size: 1.2rem;
-            line-height: 1.7;
+            font-size: 1.05rem;
+            line-height: 1.6;
         }
 
-        /* Formattage Markdown dynamique et lisible dans la fenêtre centrale */
+        /* Formattage Markdown élégant */
         .response-content h1, 
         .response-content h2, 
         .response-content h3 {
             color: var(--hud-color);
-            margin-top: 22px;
-            margin-bottom: 12px;
+            margin-top: 16px;
+            margin-bottom: 10px;
             font-family: 'Consolas', monospace;
-            text-shadow: 0 0 8px var(--hud-glow);
+            text-shadow: 0 0 6px var(--hud-glow);
             border-bottom: 1px dashed var(--hud-border);
-            padding-bottom: 6px;
+            padding-bottom: 4px;
         }
 
-        .response-content h1 { font-size: 1.7rem; }
-        .response-content h2 { font-size: 1.5rem; }
-        .response-content h3 { font-size: 1.35rem; }
-        .response-content p { margin-bottom: 16px; }
-        .response-content strong { color: #ffffff; text-shadow: 0 0 8px var(--hud-color); font-weight: bold; }
-        .response-content ul, .response-content ol { margin-left: 28px; margin-bottom: 16px; }
-        .response-content li { margin-bottom: 8px; }
-        .response-content code { background: rgba(0, 240, 255, 0.2); padding: 3px 8px; border-radius: 4px; color: #fff; }
+        .response-content h1 { font-size: 1.4rem; }
+        .response-content h2 { font-size: 1.25rem; }
+        .response-content h3 { font-size: 1.1rem; }
+        .response-content p { margin-bottom: 12px; }
+        .response-content strong { color: #ffffff; text-shadow: 0 0 6px var(--hud-color); }
+        .response-content ul, .response-content ol { margin-left: 22px; margin-bottom: 12px; }
+        .response-content li { margin-bottom: 6px; }
+        .response-content code { background: rgba(0, 240, 255, 0.2); padding: 2px 6px; border-radius: 4px; color: #fff; }
 
-        /* Formulaire de Saisie Vocal / Texte */
+        /* Barre d'entrée */
         .input-bar {
             width: 100%;
             display: flex;
-            gap: 12px;
+            gap: 10px;
             flex: 0 0 auto;
         }
 
@@ -262,39 +276,39 @@
             flex: 1;
             background: rgba(0, 20, 35, 0.85);
             border: 1px solid var(--hud-border);
-            padding: 16px 20px;
+            padding: 12px 16px;
             color: #fff;
-            font-size: 1.15rem;
-            border-radius: 6px;
+            font-size: 1rem;
+            border-radius: 5px;
             outline: none;
         }
 
         .input-bar input:focus {
             border-color: var(--hud-color);
-            box-shadow: 0 0 12px var(--hud-glow);
+            box-shadow: 0 0 10px var(--hud-glow);
         }
 
         .input-bar button {
             background: rgba(0, 240, 255, 0.18);
             border: 1px solid var(--hud-color);
             color: var(--hud-color);
-            padding: 0 28px;
-            font-size: 1.15rem;
+            padding: 0 22px;
+            font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
-            border-radius: 6px;
+            border-radius: 5px;
             transition: all 0.2s;
         }
 
         .input-bar button:hover {
             background: var(--hud-color);
             color: #000;
-            box-shadow: 0 0 20px var(--hud-color);
+            box-shadow: 0 0 15px var(--hud-color);
         }
 
         /* Scrollbar personnalisée */
         ::-webkit-scrollbar {
-            width: 9px;
+            width: 7px;
         }
         ::-webkit-scrollbar-track {
             background: rgba(0, 10, 20, 0.6);
@@ -363,14 +377,22 @@
 
             <div class="widget-title">Télémétrie Automobile</div>
             <div class="car-card">
-                <img src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=500&q=80" alt="Ferrari">
+                <div class="car-img-container">
+                    <img src="https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=600&q=80" 
+                         alt="Ferrari SF-90"
+                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=600&q=80';">
+                </div>
                 <div class="car-info">
                     <span>FERRARI SF-90</span>
                     <span>320 KM/H</span>
                 </div>
             </div>
             <div class="car-card">
-                <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=500&q=80" alt="BMW">
+                <div class="car-img-container">
+                    <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=600&q=80" 
+                         alt="BMW M5 CS"
+                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&w=600&q=80';">
+                </div>
                 <div class="car-info">
                     <span>BMW M5 CS</span>
                     <span>720 HP</span>
@@ -378,13 +400,13 @@
             </div>
         </div>
 
-        <!-- PANNEAU CENTRAL (AGRANDI & FORMATE) -->
+        <!-- PANNEAU CENTRAL -->
         <div class="center-panel">
             <div class="jarvis-orb-container">
                 <div class="jarvis-orb"></div>
             </div>
 
-            <!-- FENÊTRE DE RÉPONSE CENTRALE FORMATEE -->
+            <!-- FENÊTRE DE RÉPONSE CENTRALE -->
             <div class="response-container">
                 <div id="ai-response" class="response-content"></div>
             </div>
@@ -434,7 +456,7 @@
             </div>
 
             <div class="widget-title">Services Actifs</div>
-            <div style="font-size: 1.1rem; line-height: 2; color: #10b981; font-weight: bold;">
+            <div style="font-size: 0.95rem; line-height: 1.8; color: #10b981; font-weight: bold;">
                 <div>• GEMINI-3.6-FLASH : OPÉRATIONNEL</div>
                 <div>• ELEVENLABS : OPÉRATIONNEL</div>
                 <div>• GMAIL API : CONNECTÉ</div>
@@ -444,13 +466,13 @@
     </div>
 
     <script>
-        // Exemple de réponse formatée par défaut au chargement
+        // Exemple de réponse initiale au chargement avec formatage Markdown
         const defaultText = `Un **mammouth** est un grand mammifère herbivore aujourd'hui éteint, appartenant à la famille des éléphantidés (la même famille que les éléphants actuels).
 
 Voici les différents sens et caractéristiques du mot :
 
 ### 1. Sens scientifique (Paléontologie)
-* **Description :** Le mammouth se caractérisait par une trompe, de très longues défenses en ivoire recourbées et, pour l'espèce la plus connue (le *mammouth laineux*), une épaisse pellisse de poils adaptés au froid extrême.
+* **Description :** Le mammouth se caractérisait par une trompe, de très longues défenses en ivoire recourbées et, pour l'espèce la plus connue (le *mammouth laineux*), une épaisse pelisse de poils adaptés au froid extrême.
 * **Époque :** Il a vécu durant l'ère quaternaire (du Pliocène à l'Holocène). Les derniers mammouths ont disparu il y a environ 4 000 ans.
 * **Taille :** La plupart des espèces avaient une taille similaire à celle de l'éléphant d'Afrique actuel (environ 3 à 4 mètres au tourillon).
 
@@ -468,7 +490,7 @@ Voici les différents sens et caractéristiques du mot :
         setInterval(updateClock, 1000);
         updateClock();
 
-        // Envoi du formulaire et traitement du Markdown
+        // Envoi du formulaire
         document.getElementById('vocal-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const input = document.getElementById('text_prompt');
@@ -492,7 +514,6 @@ Voici les différents sens et caractéristiques du mot :
                     throw new Error(`Erreur serveur: ${res.status}`);
                 }
 
-                // Récupération du texte retourné ou en-tête d'audio
                 const aiTextHeader = res.headers.get('X-Jarvis-Text');
                 let rawText = "";
 
@@ -502,10 +523,10 @@ Voici les différents sens et caractéristiques du mot :
                     rawText = await res.text();
                 }
 
-                // Conversion du Markdown en HTML propre via Marked.js
+                // Affichage du Markdown formaté
                 responseDiv.innerHTML = marked.parse(rawText);
 
-                // Si de l'audio est retourné, le lire
+                // Lecture audio si disponible
                 const contentType = res.headers.get('content-type');
                 if (contentType && contentType.includes('audio/mpeg')) {
                     const blob = await res.blob();
