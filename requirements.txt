@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+python-multipart
 requests
 google-genai
 google-api-python-client
