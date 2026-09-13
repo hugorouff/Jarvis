@@ -1,474 +1,524 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JARVIS - Interface Système</title>
-  <style>
-    :root {
-      --hud-cyan: #00f3ff;
-      --hud-blue: #0066ff;
-      --hud-bg: #03080e;
-      --hud-red: #ff3366;
-      --hud-green: #00ff66;
-      --hud-yellow: #ffcc00;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS MARK-V</title>
+    <!-- Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Marked.js pour formater le Markdown venant de Gemini en HTML propre -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    <style>
+        :root {
+            --hud-color: #00f0ff;
+            --hud-bg: rgba(0, 15, 25, 0.9);
+            --hud-border: rgba(0, 240, 255, 0.45);
+            --hud-glow: rgba(0, 240, 255, 0.3);
+            --text-main: #cbf5ff;
+        }
 
-    body {
-      background-color: var(--hud-bg);
-      color: var(--hud-cyan);
-      font-family: 'Courier New', Courier, monospace;
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 10px;
-      background-image: 
-        radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.05) 0%, transparent 70%),
-        linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
-      background-size: 100% 100%, 15px 15px, 15px 15px;
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      border-bottom: 1px solid rgba(0, 243, 255, 0.4);
-      padding-bottom: 5px;
-      font-size: 0.7rem;
-      letter-spacing: 2px;
-      text-shadow: 0 0 5px var(--hud-cyan);
-    }
+        body {
+            background-color: #020813;
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 40, 60, 0.45) 0%, transparent 80%),
+                linear-gradient(to right, rgba(0, 240, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+        }
 
-    .dashboard {
-      display: grid;
-      grid-template-columns: 1.2fr 2fr 1.2fr;
-      gap: 12px;
-      height: 78vh;
-      align-items: stretch;
-    }
+        /* En-tête */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 35px;
+            border-bottom: 1px solid var(--hud-border);
+            background: rgba(0, 10, 20, 0.95);
+            font-size: 1.25rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: var(--hud-color);
+            text-shadow: 0 0 10px var(--hud-glow);
+        }
 
-    .hud-panel {
-      border: 1px solid rgba(0, 243, 255, 0.25);
-      background: rgba(0, 12, 24, 0.6);
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      font-size: 0.65rem;
-      position: relative;
-      box-shadow: inset 0 0 15px rgba(0, 243, 255, 0.05);
-      overflow-y: auto;
-    }
+        /* Layout principal */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 380px 1fr 380px;
+            gap: 20px;
+            padding: 20px;
+            height: calc(100vh - 58px);
+        }
 
-    .panel-title {
-      border-bottom: 1px dashed rgba(0, 243, 255, 0.3);
-      padding-bottom: 4px;
-      margin-bottom: 6px;
-      margin-top: 8px;
-      font-weight: bold;
-      letter-spacing: 1px;
-      color: #fff;
-    }
+        /* Panneaux latéraux agrandis */
+        .panel {
+            background: var(--hud-bg);
+            border: 1px solid var(--hud-border);
+            box-shadow: inset 0 0 20px rgba(0, 240, 255, 0.08), 0 0 18px var(--hud-glow);
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+            overflow-y: auto;
+            border-radius: 6px;
+        }
 
-    .circles-container {
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      margin: 8px 0;
-    }
+        .widget-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--hud-color);
+            letter-spacing: 2px;
+            border-bottom: 1px solid var(--hud-border);
+            padding-bottom: 8px;
+            text-transform: uppercase;
+            text-shadow: 0 0 8px var(--hud-glow);
+        }
 
-    .circle-chart {
-      width: 55px;
-      height: 55px;
-      position: relative;
-    }
+        /* Indicateurs circulaires plus grands */
+        .charts-row {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 8px 0;
+        }
 
-    .circle-chart svg {
-      width: 100%;
-      height: 100%;
-      transform: rotate(-90deg);
-    }
+        .circle-chart {
+            width: 115px;
+            height: 115px;
+            border-radius: 50%;
+            background: conic-gradient(var(--hud-color) 75%, rgba(0, 240, 255, 0.1) 0);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 0 15px var(--hud-glow);
+        }
 
-    .circle-bg {
-      fill: none;
-      stroke: rgba(0, 243, 255, 0.1);
-      stroke-width: 3.8;
-    }
+        .circle-chart::before {
+            content: '';
+            position: absolute;
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            background: #020813;
+        }
 
-    .circle-progress {
-      fill: none;
-      stroke: var(--hud-cyan);
-      stroke-width: 3.8;
-      stroke-linecap: round;
-      transition: stroke-dasharray 0.5s ease-in-out;
-    }
+        .circle-value {
+            position: relative;
+            font-size: 1.45rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 8px var(--hud-color);
+        }
 
-    .circle-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 0.6rem;
-      font-weight: bold;
-      color: #fff;
-    }
+        /* Barres de progression agrandies */
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
 
-    .vehicle-card {
-      position: relative;
-      border: 1px solid rgba(0, 243, 255, 0.3);
-      border-radius: 2px;
-      overflow: hidden;
-      margin-top: 4px;
-      height: 65px;
-    }
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--text-main);
+        }
 
-    .vehicle-card img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: contrast(120%) brightness(80%) sepia(100%) hue-rotate(140deg);
-      opacity: 0.75;
-    }
+        .progress-bar-bg {
+            height: 14px;
+            background: rgba(0, 240, 255, 0.12);
+            border: 1px solid var(--hud-border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
 
-    .vehicle-overlay {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: linear-gradient(transparent, rgba(3, 8, 14, 0.9));
-      padding: 3px 6px;
-      font-size: 0.55rem;
-      display: flex;
-      justify-content: space-between;
-      color: #fff;
-    }
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--hud-color);
+            box-shadow: 0 0 12px var(--hud-color);
+        }
 
-    .bar-container { margin: 4px 0; }
-    .bar-label { display: flex; justify-content: space-between; font-size: 0.55rem; margin-bottom: 2px; }
-    .bar-bg { width: 100%; height: 5px; background: rgba(0, 243, 255, 0.1); border: 1px solid rgba(0, 243, 255, 0.3); }
-    .bar-fill { height: 100%; background: var(--hud-cyan); width: 50%; transition: width 0.5s ease; }
+        /* Télémétrie Automobile conservée */
+        .car-card {
+            border: 1px solid var(--hud-border);
+            background: rgba(0, 20, 35, 0.7);
+            overflow: hidden;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
 
-    /* Signal Wave visualizer */
-    .audio-wave {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 3px;
-      height: 20px;
-      margin-bottom: 8px;
-    }
-    .wave-bar {
-      width: 3px;
-      height: 100%;
-      background: var(--hud-cyan);
-      animation: wave 1s infinite ease-in-out;
-    }
-    @keyframes wave {
-      0%, 100% { height: 4px; }
-      50% { height: 20px; }
-    }
+        .car-card img {
+            width: 100%;
+            height: 115px;
+            object-fit: cover;
+            display: block;
+            opacity: 0.9;
+        }
 
-    .center-display {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      height: 100%;
-    }
+        .car-info {
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--hud-color);
+        }
 
-    .arc-container {
-      position: relative;
-      width: 120px;
-      height: 120px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 10px 0;
-    }
+        /* Section centrale agrandie */
+        .center-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            height: 100%;
+            min-height: 0;
+        }
 
-    .ring {
-      position: absolute;
-      border-radius: 50%;
-      border: 2px dashed var(--hud-cyan);
-      animation: spin 10s linear infinite;
-    }
+        /* Orbe central JARVIS */
+        .jarvis-orb-container {
+            flex: 0 0 110px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
 
-    .ring-1 { width: 120px; height: 120px; border-width: 1px; opacity: 0.4; }
-    .ring-2 { width: 90px; height: 90px; border: 2px solid var(--hud-blue); animation-duration: 5s; animation-direction: reverse; }
+        .jarvis-orb {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffffff 0%, var(--hud-color) 60%, rgba(0,240,255,0.2) 100%);
+            box-shadow: 0 0 30px var(--hud-color), 0 0 60px var(--hud-glow);
+            animation: pulse 3s infinite ease-in-out;
+        }
 
-    .core {
-      width: 55px;
-      height: 55px;
-      border-radius: 50%;
-      background: radial-gradient(circle, #fff 0%, var(--hud-cyan) 60%, transparent 100%);
-      box-shadow: 0 0 20px var(--hud-cyan);
-      cursor: pointer;
-    }
+        @keyframes pulse {
+            0%, 100% { transform: scale(0.95); opacity: 0.85; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
 
-    .core.recording {
-      background: radial-gradient(circle, #fff 0%, var(--hud-red) 60%, transparent 100%);
-      box-shadow: 0 0 25px var(--hud-red);
-    }
+        /* Fenêtre de réponse centrale GRAND FORMAT */
+        .response-container {
+            flex: 1;
+            min-height: 0; /* Permet le scroll interne propre dans le flexbox */
+            width: 100%;
+            background: rgba(1, 15, 28, 0.94);
+            border: 1px solid var(--hud-color);
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.25), inset 0 0 20px rgba(0, 240, 255, 0.1);
+            border-radius: 8px;
+            padding: 30px;
+            overflow-y: auto;
+            color: #d8f8ff;
+            font-size: 1.2rem;
+            line-height: 1.7;
+        }
 
-    @keyframes spin { 100% { transform: rotate(360deg); } }
+        /* Formattage Markdown dynamique et lisible dans la fenêtre centrale */
+        .response-content h1, 
+        .response-content h2, 
+        .response-content h3 {
+            color: var(--hud-color);
+            margin-top: 22px;
+            margin-bottom: 12px;
+            font-family: 'Consolas', monospace;
+            text-shadow: 0 0 8px var(--hud-glow);
+            border-bottom: 1px dashed var(--hud-border);
+            padding-bottom: 6px;
+        }
 
-    .response-box {
-      width: 100%;
-      height: 120px;
-      border: 1px solid rgba(0, 243, 255, 0.4);
-      background: rgba(0, 8, 16, 0.85);
-      padding: 10px;
-      border-radius: 2px;
-      font-size: 0.75rem;
-      line-height: 1.4;
-      text-shadow: 0 0 4px var(--hud-cyan);
-      overflow-y: auto;
-      white-space: pre-wrap;
-    }
+        .response-content h1 { font-size: 1.7rem; }
+        .response-content h2 { font-size: 1.5rem; }
+        .response-content h3 { font-size: 1.35rem; }
+        .response-content p { margin-bottom: 16px; }
+        .response-content strong { color: #ffffff; text-shadow: 0 0 8px var(--hud-color); font-weight: bold; }
+        .response-content ul, .response-content ol { margin-left: 28px; margin-bottom: 16px; }
+        .response-content li { margin-bottom: 8px; }
+        .response-content code { background: rgba(0, 240, 255, 0.2); padding: 3px 8px; border-radius: 4px; color: #fff; }
 
-    .input-bar {
-      display: flex;
-      gap: 8px;
-      border-top: 1px solid rgba(0, 243, 255, 0.3);
-      padding-top: 8px;
-    }
+        /* Formulaire de Saisie Vocal / Texte */
+        .input-bar {
+            width: 100%;
+            display: flex;
+            gap: 12px;
+            flex: 0 0 auto;
+        }
 
-    input[type="text"] {
-      flex: 1;
-      background: rgba(0, 243, 255, 0.05);
-      border: 1px solid var(--hud-cyan);
-      color: #fff;
-      padding: 8px 12px;
-      font-family: inherit;
-      outline: none;
-      font-size: 0.8rem;
-    }
+        .input-bar input {
+            flex: 1;
+            background: rgba(0, 20, 35, 0.85);
+            border: 1px solid var(--hud-border);
+            padding: 16px 20px;
+            color: #fff;
+            font-size: 1.15rem;
+            border-radius: 6px;
+            outline: none;
+        }
 
-    button {
-      background: rgba(0, 243, 255, 0.15);
-      border: 1px solid var(--hud-cyan);
-      color: var(--hud-cyan);
-      padding: 0 15px;
-      cursor: pointer;
-      font-family: inherit;
-      font-size: 0.75rem;
-    }
+        .input-bar input:focus {
+            border-color: var(--hud-color);
+            box-shadow: 0 0 12px var(--hud-glow);
+        }
 
-    button:hover { background: var(--hud-cyan); color: var(--hud-bg); }
-  </style>
+        .input-bar button {
+            background: rgba(0, 240, 255, 0.18);
+            border: 1px solid var(--hud-color);
+            color: var(--hud-color);
+            padding: 0 28px;
+            font-size: 1.15rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .input-bar button:hover {
+            background: var(--hud-color);
+            color: #000;
+            box-shadow: 0 0 20px var(--hud-color);
+        }
+
+        /* Scrollbar personnalisée */
+        ::-webkit-scrollbar {
+            width: 9px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 10, 20, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--hud-border);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--hud-color);
+        }
+    </style>
 </head>
 <body>
 
-  <header>
-    <span>SYSTEM: ONLINE</span>
-    <span>JARVIS MARK-V</span>
-    <span id="clock">00:00:00</span>
-  </header>
+    <header>
+        <div>SYSTEM: ONLINE</div>
+        <div>JARVIS MARK-V</div>
+        <div id="clock">18:30:44</div>
+    </header>
 
-  <div class="dashboard">
-    <!-- PANNEAU GAUCHE -->
-    <div class="hud-panel">
-      <div>
-        <div class="panel-title">RÉPARTITION CAPITAL</div>
-        <div class="circles-container">
-          <div class="circle-chart">
-            <svg viewBox="0 0 36 36">
-              <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-              <path class="circle-progress" id="circle-actions" stroke-dasharray="75, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-            </svg>
-            <div class="circle-text" id="val-actions">75%</div>
-          </div>
-          <div class="circle-chart">
-            <svg viewBox="0 0 36 36">
-              <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-              <path class="circle-progress" id="circle-crypto" style="stroke: var(--hud-yellow);" stroke-dasharray="42, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-            </svg>
-            <div class="circle-text" id="val-crypto">42%</div>
-          </div>
+    <div class="dashboard-container">
+        
+        <!-- PANNEAU GAUCHE -->
+        <div class="panel">
+            <div class="widget-title">Répartition Capital</div>
+            <div class="charts-row">
+                <div class="circle-chart">
+                    <span class="circle-value">75%</span>
+                </div>
+                <div class="circle-chart" style="background: conic-gradient(#f59e0b 42%, rgba(0,240,255,0.1) 0);">
+                    <span class="circle-value">42%</span>
+                </div>
+            </div>
+
+            <div class="widget-title">Flux du Marché</div>
+            <div class="stat-item">
+                <div class="stat-header">
+                    <span>BTC / USD</span>
+                    <span>$64,210</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width: 82%;"></div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-header">
+                    <span>ETH / USD</span>
+                    <span>$3,450</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width: 58%; background: #f59e0b;"></div>
+                </div>
+            </div>
+
+            <div class="widget-title">Consommation Énergie</div>
+            <div class="stat-item">
+                <div class="stat-header">
+                    <span>RÉSEAU ÉLECTRIQUE</span>
+                    <span>2.5 MW</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width: 45%; background: #10b981;"></div>
+                </div>
+            </div>
+
+            <div class="widget-title">Télémétrie Automobile</div>
+            <div class="car-card">
+                <img src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=500&q=80" alt="Ferrari">
+                <div class="car-info">
+                    <span>FERRARI SF-90</span>
+                    <span>320 KM/H</span>
+                </div>
+            </div>
+            <div class="car-card">
+                <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=500&q=80" alt="BMW">
+                <div class="car-info">
+                    <span>BMW M5 CS</span>
+                    <span>720 HP</span>
+                </div>
+            </div>
         </div>
 
-        <div class="panel-title">FLUX DU MARCHÉ</div>
-        <div class="bar-container">
-          <div class="bar-label"><span>BTC / USD</span><span id="txt-btc">$64,210</span></div>
-          <div class="bar-bg"><div class="bar-fill" id="bar-btc" style="width: 68%;"></div></div>
-        </div>
-        <div class="bar-container">
-          <div class="bar-label"><span>ETH / USD</span><span id="txt-eth">$3,450</span></div>
-          <div class="bar-bg"><div class="bar-fill" id="bar-eth" style="width: 52%; background: var(--hud-yellow);"></div></div>
+        <!-- PANNEAU CENTRAL (AGRANDI & FORMATE) -->
+        <div class="center-panel">
+            <div class="jarvis-orb-container">
+                <div class="jarvis-orb"></div>
+            </div>
+
+            <!-- FENÊTRE DE RÉPONSE CENTRALE FORMATEE -->
+            <div class="response-container">
+                <div id="ai-response" class="response-content"></div>
+            </div>
+
+            <form class="input-bar" id="vocal-form">
+                <input type="text" id="text_prompt" name="text_prompt" placeholder="Saisissez une commande ou une question..." autocomplete="off">
+                <button type="submit"><i class="fa-solid fa-paper-plane"></i> ENVOYER</button>
+            </form>
         </div>
 
-        <div class="panel-title">CONSOMMATION ÉNERGIE</div>
-        <div class="bar-container">
-          <div class="bar-label"><span>RÉSEAU ÉLECTRIQUE</span><span id="txt-pwr">2.4 KW</span></div>
-          <div class="bar-bg"><div class="bar-fill" id="bar-pwr" style="width: 38%; background: var(--hud-green);"></div></div>
-        </div>
-      </div>
+        <!-- PANNEAU DROITE -->
+        <div class="panel">
+            <div class="widget-title">Statut du Réacteur</div>
+            <div class="charts-row">
+                <div class="circle-chart" style="background: conic-gradient(#ef4444 89%, rgba(0,240,255,0.1) 0);">
+                    <span class="circle-value">89%</span>
+                </div>
+            </div>
 
-      <div>
-        <div class="panel-title">TÉLÉMÉTRIE AUTOMOBILE</div>
-        <div class="vehicle-card">
-          <img src="https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=600&q=80" alt="Ferrari F1">
-          <div class="vehicle-overlay">
-            <span>FERRARI SF-24</span>
-            <span style="color:var(--hud-green);" id="speed-ferrari">342 KM/H</span>
-          </div>
+            <div class="widget-title">Monitoring Système</div>
+            <div class="stat-item">
+                <div class="stat-header">
+                    <span>CHARGE CPU</span>
+                    <span>52%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width: 52%; background: #10b981;"></div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-header">
+                    <span>MÉMOIRE RAM</span>
+                    <span>6.2 GB</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width: 65%;"></div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-header">
+                    <span>LIAISON SATELLITE</span>
+                    <span>99.8%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width: 99.8%;"></div>
+                </div>
+            </div>
+
+            <div class="widget-title">Services Actifs</div>
+            <div style="font-size: 1.1rem; line-height: 2; color: #10b981; font-weight: bold;">
+                <div>• GEMINI-3.6-FLASH : OPÉRATIONNEL</div>
+                <div>• ELEVENLABS : OPÉRATIONNEL</div>
+                <div>• GMAIL API : CONNECTÉ</div>
+            </div>
         </div>
-        <div class="vehicle-card">
-          <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=600&q=80" alt="BMW M5">
-          <div class="vehicle-overlay">
-            <span>BMW M5 COMPETITION</span>
-            <span style="color:var(--hud-cyan);">720 HP</span>
-          </div>
-        </div>
-      </div>
+
     </div>
 
-    <!-- CENTRE -->
-    <div class="center-display">
-      <div class="arc-container">
-        <div class="ring ring-1"></div>
-        <div class="ring ring-2"></div>
-        <div class="core" id="micBtn" title="Cliquer pour parler"></div>
-      </div>
+    <script>
+        // Exemple de réponse formatée par défaut au chargement
+        const defaultText = `Un **mammouth** est un grand mammifère herbivore aujourd'hui éteint, appartenant à la famille des éléphantidés (la même famille que les éléphants actuels).
 
-      <div class="audio-wave">
-        <div class="wave-bar" style="animation-delay:0.1s"></div>
-        <div class="wave-bar" style="animation-delay:0.3s"></div>
-        <div class="wave-bar" style="animation-delay:0.2s"></div>
-        <div class="wave-bar" style="animation-delay:0.4s"></div>
-        <div class="wave-bar" style="animation-delay:0.15s"></div>
-      </div>
+Voici les différents sens et caractéristiques du mot :
 
-      <div class="response-box" id="responseBox">Initialisation terminée. En attente de vos instructions, Monsieur...</div>
-    </div>
+### 1. Sens scientifique (Paléontologie)
+* **Description :** Le mammouth se caractérisait par une trompe, de très longues défenses en ivoire recourbées et, pour l'espèce la plus connue (le *mammouth laineux*), une épaisse pellisse de poils adaptés au froid extrême.
+* **Époque :** Il a vécu durant l'ère quaternaire (du Pliocène à l'Holocène). Les derniers mammouths ont disparu il y a environ 4 000 ans.
+* **Taille :** La plupart des espèces avaient une taille similaire à celle de l'éléphant d'Afrique actuel (environ 3 à 4 mètres au tourillon).
 
-    <!-- PANNEAU DROIT -->
-    <div class="hud-panel">
-      <div>
-        <div class="panel-title">STATUT DU RÉACTEUR</div>
-        <div class="circles-container">
-          <div class="circle-chart">
-            <svg viewBox="0 0 36 36">
-              <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-              <path class="circle-progress" id="circle-reactor" style="stroke: var(--hud-red);" stroke-dasharray="88, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-            </svg>
-            <div class="circle-text" id="val-reactor">88%</div>
-          </div>
-        </div>
+### 2. Sens figuré (Langage courant)
+* **Chose colossale :** Désigne une chose gigantesque, énorme ou désuète.
+* **Argot politique (en France) :** Le terme « le Mammouth » est un surnom péjoratif donné au **ministère de l'Éducation nationale**, pour critiquer sa taille massive et sa lourdeur administrative (expression rendue célèbre par l'ancien ministre Claude Allègre en 1997).`;
 
-        <div class="panel-title">MONITORING SYSTEME</div>
-        <div class="bar-container">
-          <div class="bar-label"><span>CHARGE CPU</span><span id="txt-cpu">45%</span></div>
-          <div class="bar-bg"><div class="bar-fill" id="bar-cpu" style="width: 45%; background: var(--hud-green);"></div></div>
-        </div>
-        <div class="bar-container">
-          <div class="bar-label"><span>MEMOIRE RAM</span><span id="txt-ram">6.2 GB</span></div>
-          <div class="bar-bg"><div class="bar-fill" id="bar-ram" style="width: 62%;"></div></div>
-        </div>
-        <div class="bar-container">
-          <div class="bar-label"><span>LIAISON SATELLITE</span><span id="txt-sat">99.8%</span></div>
-          <div class="bar-bg"><div class="bar-fill" id="bar-sat" style="width: 99%;"></div></div>
-        </div>
-      </div>
+        document.getElementById('ai-response').innerHTML = marked.parse(defaultText);
 
-      <div>
-        <div class="panel-title">SERVICES ACTIFS</div>
-        <p>• GEMINI-2.5: <span style="color:var(--hud-green);">OPÉRATIONNEL</span></p>
-        <p>• ELEVENLABS: <span style="color:var(--hud-green);">OPÉRATIONNEL</span></p>
-        <p>• GMAIL API: <span style="color:var(--hud-green);">CONNECTÉ</span></p>
-      </div>
-    </div>
-  </div>
-
-  <div class="input-bar">
-    <input type="text" id="textInput" placeholder="Saisir une instruction pour Jarvis..." autocomplete="off">
-    <button id="sendBtn">ENVOYER</button>
-  </div>
-
-  <script>
-    setInterval(() => {
-      document.getElementById('clock').innerText = new Date().toLocaleTimeString();
-    }, 1000);
-
-    // Mises à jour dynamiques du HUD
-    setInterval(() => {
-      document.getElementById('speed-ferrari').innerText = `${Math.floor(338 + Math.random() * 10)} KM/H`;
-      
-      const cpu = Math.floor(35 + Math.random() * 25);
-      document.getElementById('txt-cpu').innerText = `${cpu}%`;
-      document.getElementById('bar-cpu').style.width = `${cpu}%`;
-
-      const pwr = (2.1 + Math.random() * 0.5).toFixed(1);
-      document.getElementById('txt-pwr').innerText = `${pwr} KW`;
-      document.getElementById('bar-pwr').style.width = `${(pwr/4)*100}%`;
-
-      const reactor = Math.floor(86 + Math.random() * 6);
-      document.getElementById('val-reactor').innerText = `${reactor}%`;
-      document.getElementById('circle-reactor').setAttribute('stroke-dasharray', `${reactor}, 100`);
-    }, 1500);
-
-    const micBtn = document.getElementById('micBtn');
-    const responseBox = document.getElementById('responseBox');
-    const textInput = document.getElementById('textInput');
-    const sendBtn = document.getElementById('sendBtn');
-    
-    let mediaRecorder, audioChunks = [];
-
-    function typeWriter(text) {
-      responseBox.innerText = "";
-      let i = 0;
-      function speed() {
-        if (i < text.length) {
-          responseBox.innerText += text.charAt(i);
-          i++;
-          setTimeout(speed, 15);
+        // Horloge temps réel
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
         }
-      }
-      speed();
-    }
+        setInterval(updateClock, 1000);
+        updateClock();
 
-    sendBtn.onclick = () => sendText();
-    textInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendText(); });
+        // Envoi du formulaire et traitement du Markdown
+        document.getElementById('vocal-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('text_prompt');
+            const responseDiv = document.getElementById('ai-response');
+            const promptText = input.value.trim();
 
-    async function sendText() {
-      const query = textInput.value.trim();
-      if (!query) return;
-      responseBox.innerText = "[TRANSMITTING_TO_JARVIS...]";
-      textInput.value = "";
-      
-      const formData = new FormData();
-      formData.append('text_prompt', query);
-      await executeRequest('/vocal', formData);
-    }
+            if (!promptText) return;
 
-    async function executeRequest(url, formData) {
-      try {
-        const response = await fetch(url, { method: 'POST', body: formData });
-        const contentType = response.headers.get("content-type");
+            responseDiv.innerHTML = "<em>Analyse en cours par JARVIS...</em>";
 
-        if (response.ok) {
-          if (contentType && contentType.includes("audio")) {
-            const replyText = response.headers.get("X-Jarvis-Text") || "Instruction reçue et exécutée, Monsieur.";
-            typeWriter(replyText);
-            const blob = await response.blob();
-            const audio = new Audio(URL.createObjectURL(blob));
-            audio.play();
-          } else {
-            const text = await response.text();
-            typeWriter(text);
-          }
-        } else {
-          const errText = await response.text();
-          typeWriter(`[ERREUR SYSTEME]: ${errText}`);
-        }
-      } catch (err) {
-        typeWriter("[ERREUR RESEAU]: Impossible de contacter le serveur.");
-      }
-    }
-  </script>
+            const formData = new FormData();
+            formData.append('text_prompt', promptText);
+
+            try {
+                const res = await fetch('/vocal', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!res.ok) {
+                    throw new Error(`Erreur serveur: ${res.status}`);
+                }
+
+                // Récupération du texte retourné ou en-tête d'audio
+                const aiTextHeader = res.headers.get('X-Jarvis-Text');
+                let rawText = "";
+
+                if (aiTextHeader) {
+                    rawText = decodeURIComponent(escape(aiTextHeader));
+                } else {
+                    rawText = await res.text();
+                }
+
+                // Conversion du Markdown en HTML propre via Marked.js
+                responseDiv.innerHTML = marked.parse(rawText);
+
+                // Si de l'audio est retourné, le lire
+                const contentType = res.headers.get('content-type');
+                if (contentType && contentType.includes('audio/mpeg')) {
+                    const blob = await res.blob();
+                    const audioUrl = URL.createObjectURL(blob);
+                    const audio = new Audio(audioUrl);
+                    audio.play();
+                }
+
+                input.value = "";
+            } catch (err) {
+                responseDiv.innerHTML = `<span style="color: #ef4444;">Erreur système : ${err.message}</span>`;
+            }
+        });
+    </script>
 </body>
 </html>
