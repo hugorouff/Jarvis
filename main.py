@@ -5,8 +5,8 @@ import base64
 import traceback
 import requests
 from email.mime.text import MIMEText
-from fastapi import FastAPI, Form, UploadFile, File, BackgroundTasks
-from fastapi.responses import Response, HTMLResponse, FileResponse
+from fastapi import FastAPI, Form, UploadFile, File
+from fastapi.responses import Response, HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from google import genai
 from google.genai import types
@@ -23,12 +23,11 @@ UPSTASH_TOKEN = os.getenv("UPSTASH_REDIS_REST_TOKEN")
 
 client = genai.Client(api_key=GEMINI_KEY)
 
-# Dossier static pour l'icône et autres médias si existant
 if os.path.exists("static"):
     app.mount("/static", StaticFiles(directory="static"), name="static")
 
 HISTORY_KEY = "jarvis:history"
-MAX_HISTORY_MESSAGES = 20  # ~10 échanges user/modèle conservés
+MAX_HISTORY_MESSAGES = 10  # Garde exactement les 10 derniers messages (5 questions + 5 réponses)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -56,15 +55,20 @@ def load_history():
     if not _upstash_available():
         return []
     try:
+        url = f"{UPSTASH_URL.rstrip('/')}/get/{HISTORY_KEY}"
         res = requests.get(
-            f"{UPSTASH_URL}/get/{HISTORY_KEY}",
+            url,
             headers={"Authorization": f"Bearer {UPSTASH_TOKEN}"},
             timeout=5,
         )
+        if res.status_code != 200:
+            return []
+            
         data = res.json()
         raw = data.get("result")
         if not raw:
             return []
+        
         return json.loads(raw)
     except Exception as e:
         print(f"[Upstash] Erreur de lecture : {e}")
@@ -72,14 +76,15 @@ def load_history():
 
 
 def save_history(history):
-    """Sauvegarde l'historique de conversation dans Upstash Redis."""
+    """Sauvegarde l'historique de conversation dans Upstash Redis (limité aux N derniers)."""
     if not _upstash_available():
         return
     try:
         trimmed = history[-MAX_HISTORY_MESSAGES:]
         payload = json.dumps(trimmed, ensure_ascii=False)
+        url = f"{UPSTASH_URL.rstrip('/')}/set/{HISTORY_KEY}"
         requests.post(
-            f"{UPSTASH_URL}/set/{HISTORY_KEY}",
+            url,
             headers={"Authorization": f"Bearer {UPSTASH_TOKEN}"},
             data=payload.encode("utf-8"),
             timeout=5,
@@ -93,13 +98,20 @@ def clear_history():
     if not _upstash_available():
         return
     try:
+        url = f"{UPSTASH_URL.rstrip('/')}/del/{HISTORY_KEY}"
         requests.get(
-            f"{UPSTASH_URL}/del/{HISTORY_KEY}",
+            url,
             headers={"Authorization": f"Bearer {UPSTASH_TOKEN}"},
             timeout=5,
         )
     except Exception as e:
         print(f"[Upstash] Erreur de suppression : {e}")
+
+
+@app.get("/history")
+def get_history_api():
+    """Endpoint pour charger la discussion côté interface web au chargement de la page."""
+    return JSONResponse(content=load_history())
 
 
 # ---------------------------------------------------------------------------
@@ -138,22 +150,32 @@ def send_email(to_email: str, subject: str, body: str) -> str:
 SYSTEM_INSTRUCTION = (
     "Tu es JARVIS, un assistant IA élégant, réactif et concis. "
     "Tu te souviens parfaitement du contexte de la conversation. "
+    "Tu as accès au Web Search (Google Search) pour effectuer des recherches d'informations en temps réel et obtenir les faits les plus récents. "
     "Si l'utilisateur te demande d'envoyer un e-mail, utilise l'outil `send_email` "
     "avec un destinataire, un sujet et un corps de texte."
 )
 
 
 def build_chat_with_history():
+    """Recrée une session de chat Gemini avec mémoire + recherche Web instantanée."""
     history_raw = load_history()
+    
     genai_history = [
-        types.Content(role=h["role"], parts=[types.Part(text=h["text"])])
+        types.Content(
+            role=h["role"], 
+            parts=[types.Part.from_text(text=h["text"])]
+        )
         for h in history_raw
     ]
+
     return client.chats.create(
-        model="gemini-3.5-flash-lite",  # <--- Modifié ici
+        model="gemini-3.6-flash",
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_INSTRUCTION,
-            tools=[send_email],
+            tools=[
+                {"google_search": {}},  # Activer la recherche web en direct Google Search
+                send_email,
+            ],
         ),
         history=genai_history,
     )
@@ -186,7 +208,7 @@ async def process_vocal(
     mime_type: str = Form(None),
 ):
     try:
-        # 1) Charge l'historique et initialise le Chat Gemini
+        # 1) Charge l'historique et initialise le Chat Gemini avec Google Search
         chat = build_chat_with_history()
         user_display_text = text_prompt or "[Message vocal]"
 
