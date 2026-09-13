@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jarvis</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      background-color: #0d1117;
+      color: #58a6ff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .arc-reactor {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      border: 4px solid #58a6ff;
+      box-shadow: 0 0 20px #58a6ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .arc-reactor.recording {
+      border-color: #ff4d4d;
+      box-shadow: 0 0 30px #ff4d4d;
+    }
+    p { margin-top: 30px; font-size: 1.2rem; }
+  </style>
+</head>
+<body>
+
+  <div class="arc-reactor" id="micBtn">
+    <span id="statusText">PARLER</span>
+  </div>
+  <p id="info">Appuie pour parler à Jarvis</p>
+
+  <script>
+    const micBtn = document.getElementById('micBtn');
+    const info = document.getElementById('info');
+    let mediaRecorder;
+    let audioChunks = [];
+
+    micBtn.onclick = async () => {
+      if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = sendAudio;
+
+        mediaRecorder.start();
+        micBtn.classList.add('recording');
+        info.innerText = "Écoute en cours...";
+      } else {
+        mediaRecorder.stop();
+        micBtn.classList.remove('recording');
+        info.innerText = "Traitement par Jarvis...";
+      }
+    };
+
+    async function sendAudio() {
+      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+      const formData = new FormData();
+      formData.append('file', audioBlob, 'input.wav');
+
+      try {
+        const response = await fetch('https://jarvis-c157.onrender.com/vocal', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (response.ok) {
+          const blob = await response.blob();
+          const audioUrl = URL.createObjectURL(blob);
+          const audio = new Audio(audioUrl);
+          audio.play();
+          info.innerText = "Réponse reçue !";
+        } else {
+          info.innerText = "Erreur du serveur Jarvis.";
+        }
+      } catch (err) {
+        info.innerText = "Erreur de connexion.";
+      }
+    }
+  </script>
+</body>
+</html>
