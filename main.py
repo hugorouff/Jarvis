@@ -1,8 +1,9 @@
 import os
 import requests
 from fastapi import FastAPI, UploadFile, File
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 import google.generativeai as genai
+import os
 
 app = FastAPI()
 
@@ -12,9 +13,11 @@ ELEVEN_KEY = os.getenv("ELEVENLABS_API_KEY")
 
 genai.configure(api_key=GEMINI_KEY)
 
-@app.get("/")
+# Rediriger l'accueil vers la page web index.html
+@app.get("/", response_class=HTMLResponse)
 def home():
-    return {"status": "Jarvis est en ligne et fonctionnel !"}
+    with open("index.html", "r", encoding="utf-8") as f:
+        return f.read()
 
 @app.post("/vocal")
 async def traiter_vocal(file: UploadFile = File(...)):
