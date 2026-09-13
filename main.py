@@ -25,15 +25,15 @@ async def process_vocal(
     try:
         prompt = text_prompt or "Bonjour Jarvis"
 
-        # Appel à Gemini (Utilisation de gemini-2.5-flash)
+        # Appel à Gemini avec la version demandée par l'API (gemini-3.6-flash)
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.6-flash",
             contents=prompt,
         )
         
         reply_text = response.text or "Instruction reçue, Monsieur."
 
-        # Synthèse vocale avec ElevenLabs si la clé est renseignée
+        # Synthèse vocale avec ElevenLabs si la clé est présente
         if ELEVEN_KEY:
             voice_id = "21m00Tcm4TlvDq8ikWAM"
             url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
