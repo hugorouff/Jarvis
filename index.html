@@ -3,68 +3,304 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jarvis</title>
+  <title>JARVIS - Interface Système</title>
   <link rel="manifest" href="manifest.json">
   <style>
+    :root {
+      --hud-cyan: #00f3ff;
+      --hud-blue: #0066ff;
+      --hud-bg: #050b14;
+      --hud-red: #ff3366;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      background-color: #0d1117;
-      color: #58a6ff;
-      font-family: sans-serif;
+      background-color: var(--hud-bg);
+      color: var(--hud-cyan);
+      font-family: 'Courier New', Courier, monospace;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 15px;
+      background-image: 
+        radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.05) 0%, transparent 70%),
+        linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 20px 20px, 20px 20px;
+    }
+
+    /* En-tête HUD */
+    header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+      padding-bottom: 8px;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+    }
+
+    /* Grille Principale */
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      gap: 15px;
+      height: 70vh;
+      align-items: center;
+    }
+
+    /* Panneaux latéraux avec données animées */
+    .hud-panel {
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      background: rgba(0, 15, 30, 0.4);
+      padding: 10px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      font-size: 0.7rem;
+      position: relative;
+    }
+
+    .hud-panel::before {
+      content: '';
+      position: absolute;
+      top: -2px; left: -2px; width: 8px; height: 8px;
+      border-top: 2px solid var(--hud-cyan);
+      border-left: 2px solid var(--hud-cyan);
+    }
+
+    /* Diagramme des flux monétaires */
+    .flow-stream {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .flow-bar {
+      height: 12px;
+      background: rgba(0, 243, 255, 0.1);
+      border: 1px solid var(--hud-cyan);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .flow-fill {
+      height: 100%;
+      background: var(--hud-cyan);
+      width: 50%;
+      animation: pulseFlow 3s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulseFlow {
+      0% { width: 20%; }
+      100% { width: 95%; }
+    }
+
+    /* Zone Centrale (Réponse & Réacteur) */
+    .center-display {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      margin: 0;
+      height: 100%;
+      position: relative;
     }
-    .arc-reactor {
-      width: 150px;
-      height: 150px;
-      border-radius: 50%;
-      border: 4px solid #58a6ff;
-      box-shadow: 0 0 20px #58a6ff;
+
+    .arc-container {
+      position: relative;
+      width: 140px;
+      height: 140px;
       display: flex;
       align-items: center;
       justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px dashed var(--hud-cyan);
+      animation: spin 10s linear infinite;
+    }
+
+    .ring-1 { width: 140px; height: 140px; border-width: 1px; opacity: 0.5; }
+    .ring-2 { width: 110px; height: 110px; border: 2px solid var(--hud-blue); animation-duration: 6s; animation-direction: reverse; }
+    
+    .core {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff 0%, var(--hud-cyan) 60%, transparent 100%);
+      box-shadow: 0 0 20px var(--hud-cyan);
       cursor: pointer;
-      transition: all 0.3s;
+      transition: transform 0.2s;
     }
-    .arc-reactor.recording {
-      border-color: #ff4d4d;
-      box-shadow: 0 0 30px #ff4d4d;
+
+    .core.recording {
+      background: radial-gradient(circle, #fff 0%, var(--hud-red) 60%, transparent 100%);
+      box-shadow: 0 0 25px var(--hud-red);
     }
-    p { margin-top: 30px; font-size: 1.2rem; }
+
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* Zone d'affichage du texte de Jarvis */
+    .response-box {
+      width: 100%;
+      min-height: 120px;
+      border: 1px solid rgba(0, 243, 255, 0.4);
+      background: rgba(0, 10, 20, 0.7);
+      padding: 15px;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      text-shadow: 0 0 5px var(--hud-cyan);
+      overflow-y: auto;
+      max-height: 200px;
+    }
+
+    /* Zone de saisie texte / vocal en bas */
+    .input-bar {
+      display: flex;
+      gap: 10px;
+      border-top: 1px solid rgba(0, 243, 255, 0.3);
+      padding-top: 10px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background: rgba(0, 243, 255, 0.05);
+      border: 1px solid var(--hud-cyan);
+      color: #fff;
+      padding: 12px;
+      font-family: inherit;
+      outline: none;
+      border-radius: 2px;
+    }
+
+    button {
+      background: rgba(0, 243, 255, 0.15);
+      border: 1px solid var(--hud-cyan);
+      color: var(--hud-cyan);
+      padding: 0 20px;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: 1px;
+      transition: background 0.2s;
+    }
+
+    button:hover { background: var(--hud-cyan); color: var(--hud-bg); }
   </style>
 </head>
 <body>
 
-  <div class="arc-reactor" id="micBtn">
-    <span id="statusText">PARLER</span>
+  <header>
+    <span>SYSTEM: ONLINE</span>
+    <span>JARVIS v2.4</span>
+    <span id="clock">00:00:00</span>
+  </header>
+
+  <div class="dashboard">
+    <!-- Panneau Gauche : Flux & Télémétrie -->
+    <div class="hud-panel">
+      <div>
+        <p>FLUX MONÉTAIRES (EUR/USD)</p>
+        <div class="flow-stream" style="margin-top: 8px;">
+          <span>MARCHÉ ACTIONS</span>
+          <div class="flow-bar"><div class="flow-fill" style="animation-duration: 2.1s;"></div></div>
+          <span>CRYPTO ASSETS</span>
+          <div class="flow-bar"><div class="flow-fill" style="animation-duration: 4.5s;"></div></div>
+          <span>LIQUIDITÉS</span>
+          <div class="flow-bar"><div class="flow-fill" style="animation-duration: 1.8s;"></div></div>
+        </div>
+      </div>
+      <div>
+        <p>RESEAU: <span style="color: #00ff66;">SÉCURISÉ</span></p>
+        <p>LATENCE: <span id="latency">24ms</span></p>
+      </div>
+    </div>
+
+    <!-- Centre : Réacteur Arc & Réponses Texte -->
+    <div class="center-display">
+      <div class="arc-container">
+        <div class="ring ring-1"></div>
+        <div class="ring ring-2"></div>
+        <div class="core" id="micBtn" title="Cliquer pour parler"></div>
+      </div>
+      
+      <div class="response-box" id="responseBox">
+        Initialisation terminée. En attente de vos instructions, Monsieur...
+      </div>
+    </div>
+
+    <!-- Panneau Droit : Ressources Système -->
+    <div class="hud-panel">
+      <div>
+        <p>SERVEUR RENDER</p>
+        <p style="margin-top: 5px;">CPU: <span id="cpuUsage">12%</span></p>
+        <div class="flow-bar" style="margin-top: 4px;"><div class="flow-fill" id="cpuBar"></div></div>
+      </div>
+      <div>
+        <p>MODULES IA</p>
+        <p>• GEMINI-1.5: <span style="color: #00ff66;">OK</span></p>
+        <p>• ELEVENLABS: <span style="color: #00ff66;">OK</span></p>
+        <p>• GMAIL API: <span style="color: #00ff66;">PRÊT</span></p>
+      </div>
+    </div>
   </div>
-  <p id="info">Appuie pour parler à Jarvis</p>
+
+  <!-- Barre d'entrée de Texte & Vocal -->
+  <div class="input-bar">
+    <input type="text" id="textInput" placeholder="Écrire une commande à Jarvis..." autocomplete="off">
+    <button id="sendBtn">ENVOYER</button>
+  </div>
 
   <script>
+    // Horloge HUD
+    setInterval(() => {
+      document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+      document.getElementById('cpuUsage').innerText = Math.floor(Math.random() * 20 + 10) + '%';
+    }, 1000);
+
     const micBtn = document.getElementById('micBtn');
-    const info = document.getElementById('info');
+    const responseBox = document.getElementById('responseBox');
+    const textInput = document.getElementById('textInput');
+    const sendBtn = document.getElementById('sendBtn');
+    
     let mediaRecorder;
     let audioChunks = [];
 
+    // Animation écriture texte
+    function typeWriter(text) {
+      responseBox.innerText = "";
+      let i = 0;
+      function speed() {
+        if (i < text.length) {
+          responseBox.innerText += text.charAt(i);
+          i++;
+          setTimeout(speed, 20);
+        }
+      }
+      speed();
+    }
+
+    // Gestion Enregistrement Vocal
     micBtn.onclick = async () => {
       if (!mediaRecorder || mediaRecorder.state === 'inactive') {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream);
         audioChunks = [];
-
         mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
         mediaRecorder.onstop = sendAudio;
-
         mediaRecorder.start();
         micBtn.classList.add('recording');
-        info.innerText = "Écoute en cours...";
+        responseBox.innerText = "[ÉCOUTE EN COURS...]";
       } else {
         mediaRecorder.stop();
         micBtn.classList.remove('recording');
-        info.innerText = "Traitement par Jarvis...";
+        responseBox.innerText = "[TRAITEMENT EN COURS...]";
       }
     };
 
@@ -72,24 +308,38 @@
       const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
       const formData = new FormData();
       formData.append('file', audioBlob, 'input.wav');
+      await executeRequest('https://jarvis-c157.onrender.com/vocal', { method: 'POST', body: formData });
+    }
 
+    // Envoi par Texte
+    sendBtn.onclick = () => sendText();
+    textInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendText(); });
+
+    async function sendText() {
+      const query = textInput.value.trim();
+      if (!query) return;
+      responseBox.innerText = "[TRANSMISSION DE LA COMMANDE...]";
+      textInput.value = "";
+      
+      const formData = new FormData();
+      formData.append('text_prompt', query);
+      await executeRequest('https://jarvis-c157.onrender.com/vocal', { method: 'POST', body: formData });
+    }
+
+    async function executeRequest(url, options) {
       try {
-        const response = await fetch('https://jarvis-c157.onrender.com/vocal', {
-          method: 'POST',
-          body: formData
-        });
-
+        const response = await fetch(url, options);
         if (response.ok) {
           const blob = await response.blob();
           const audioUrl = URL.createObjectURL(blob);
           const audio = new Audio(audioUrl);
           audio.play();
-          info.innerText = "Réponse reçue !";
+          typeWriter("Commande exécutée avec succès, Monsieur.");
         } else {
-          info.innerText = "Erreur du serveur Jarvis.";
+          typeWriter("Erreur de traitement par le serveur.");
         }
       } catch (err) {
-        info.innerText = "Erreur de connexion.";
+        typeWriter("Erreur critique de connexion au serveur Render.");
       }
     }
   </script>
